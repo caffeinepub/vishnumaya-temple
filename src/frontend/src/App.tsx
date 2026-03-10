@@ -1,6 +1,7 @@
 import AboutSection from "@/components/AboutSection";
 import BookingSection from "@/components/BookingSection";
 import ContactSection from "@/components/ContactSection";
+import FloatingContactButton from "@/components/FloatingContactButton";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection";
 import Navbar from "@/components/Navbar";
@@ -19,6 +20,7 @@ export default function App() {
           <ContactSection />
         </main>
         <Footer />
+        <FloatingContactButton />
       </div>
       <Toaster />
     </LanguageProvider>

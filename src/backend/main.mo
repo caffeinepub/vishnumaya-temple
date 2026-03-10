@@ -4,7 +4,8 @@ import Order "mo:core/Order";
 import Map "mo:core/Map";
 import Text "mo:core/Text";
 import Runtime "mo:core/Runtime";
-import List "mo:core/List";
+import Nat "mo:core/Nat";
+import Int "mo:core/Int";
 
 actor {
   type Pooja = {
@@ -34,7 +35,7 @@ actor {
     phoneNumber : Text;
     poojaId : Nat;
     preferredDate : Text;
-    status : Text; // "pending" or "confirmed"
+    status : Text;
     createdTimestamp : Time.Time;
   };
 
@@ -48,9 +49,32 @@ actor {
     };
   };
 
+  type User = {
+    phoneNumber : Text;
+    name : Text;
+    registeredAt : Time.Time;
+  };
+
+  type OTPRecord = {
+    otp : Text;
+    name : Text;
+    createdAt : Time.Time;
+  };
+
   var nextBookingId = 1;
   let poojas = Map.empty<Nat, Pooja>();
   let bookings = Map.empty<Nat, Booking>();
+  let users = Map.empty<Text, User>();
+  let pendingOTPs = Map.empty<Text, OTPRecord>();
+
+  // Generate a 6-digit OTP from current time
+  // Always produces a value in [100000, 999999] to guarantee 6 digits
+  func generateOTP(_phone : Text) : Text {
+    let t : Int = Time.now();
+    let raw : Nat = Int.abs(t / 1_000_000) % 900_000;
+    let sixDigit : Nat = raw + 100_000;
+    sixDigit.toText();
+  };
 
   // Pre-seed poojas
   let initialPoojas = [
@@ -106,7 +130,6 @@ actor {
     }
   ];
 
-  // Add initial poojas to the map
   initialPoojas.forEach(
     func(p) {
       poojas.add(p.poojaId, p);
@@ -145,5 +168,57 @@ actor {
         bookings.add(bookingId, updatedBooking);
       };
     };
+  };
+
+  // Registration: request OTP (returns OTP for demo display since no SMS service)
+  public shared func requestOTP(phoneNumber : Text, name : Text) : async Text {
+    if (users.containsKey(phoneNumber)) {
+      Runtime.trap("Phone number already registered");
+    };
+    let otp = generateOTP(phoneNumber);
+    let record : OTPRecord = {
+      otp;
+      name;
+      createdAt = Time.now();
+    };
+    pendingOTPs.add(phoneNumber, record);
+    otp;
+  };
+
+  // Registration: verify OTP and complete registration
+  public shared func verifyOTP(phoneNumber : Text, otp : Text) : async Bool {
+    switch (pendingOTPs.get(phoneNumber)) {
+      case (null) { false };
+      case (?record) {
+        if (record.otp == otp) {
+          let elapsed : Int = Time.now() - record.createdAt;
+          if (elapsed <= 10 * 60 * 1_000_000_000) {
+            let user : User = {
+              phoneNumber;
+              name = record.name;
+              registeredAt = Time.now();
+            };
+            users.add(phoneNumber, user);
+            pendingOTPs.remove(phoneNumber);
+            true;
+          } else {
+            pendingOTPs.remove(phoneNumber);
+            false;
+          };
+        } else {
+          false;
+        };
+      };
+    };
+  };
+
+  // Check if phone number is registered
+  public query func isRegistered(phoneNumber : Text) : async Bool {
+    users.containsKey(phoneNumber);
+  };
+
+  // Get registered user info
+  public query func getUser(phoneNumber : Text) : async ?User {
+    users.get(phoneNumber);
   };
 };

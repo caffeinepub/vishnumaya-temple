@@ -14,6 +14,7 @@ const translations: Record<string, Record<Language, string>> = {
   navBookNow: { en: "Book Now", ml: "ഇപ്പോൾ ബുക്ക് ചെയ്യൂ" },
   navAbout: { en: "About", ml: "ഞങ്ങളെ കുറിച്ച്" },
   navContact: { en: "Contact", ml: "ബന്ധപ്പെടുക" },
+  navRegister: { en: "Register", ml: "രജിസ്റ്റർ" },
   langToggle: { en: "മലയാളം", ml: "English" },
 
   // Hero
@@ -117,6 +118,67 @@ const translations: Record<string, Record<Language, string>> = {
 
   // Currency
   rupee: { en: "₹", ml: "₹" },
+
+  // Registration
+  registerTitle: {
+    en: "Register with Mobile",
+    ml: "മൊബൈൽ ഉപയോഗിച്ച് രജിസ്റ്റർ ചെയ്യൂ",
+  },
+  registerSubtitle: {
+    en: "Enter your name and mobile number to register with the temple.",
+    ml: "ക്ഷേത്രത്തിൽ രജിസ്റ്റർ ചെയ്യാൻ നിങ്ങളുടെ പേരും മൊബൈൽ നമ്പറും നൽകൂ.",
+  },
+  registerName: { en: "Full Name", ml: "പൂർണ്ണ നാമം" },
+  registerNamePlaceholder: {
+    en: "Enter your full name",
+    ml: "നിങ്ങളുടെ പൂർണ്ണ പേര്",
+  },
+  registerPhone: { en: "Mobile Number", ml: "മൊബൈൽ നമ്പർ" },
+  registerPhonePlaceholder: { en: "e.g. 9876543210", ml: "ഉദാ: 9876543210" },
+  registerSendOTP: { en: "Send OTP", ml: "OTP അയക്കൂ" },
+  registerSending: { en: "Sending...", ml: "അയക്കുന്നു..." },
+  registerOTPSent: {
+    en: "OTP generated. Enter the code below.",
+    ml: "OTP ജനറേറ്റ് ചെയ്തു. ചുവടെ കോഡ് നൽകൂ.",
+  },
+  registerOTPDemoNote: {
+    en: "Your OTP (demo mode — shown on screen):",
+    ml: "നിങ്ങളുടെ OTP (ഡെമോ മോഡ് — സ്ക്രീനിൽ കാണിക്കുന്നു):",
+  },
+  registerEnterOTPLabel: { en: "Enter 6-digit OTP", ml: "6 അക്ക OTP നൽകൂ" },
+  registerVerify: { en: "Verify & Register", ml: "പരിശോധിക്കൂ & രജിസ്റ്റർ" },
+  registerVerifying: { en: "Verifying...", ml: "പരിശോധിക്കുന്നു..." },
+  registerBack: { en: "Back", ml: "തിരിക" },
+  registerSuccessTitle: {
+    en: "Registration Successful!",
+    ml: "രജിസ്ട്രേഷൻ വിജയകരം!",
+  },
+  registerSuccessMessage: {
+    en: "You are now registered with Pallikudath Vishnumaya Temple. May Lord Vishnumaya bless you.",
+    ml: "നിങ്ങൾ ഇപ്പോൾ പള്ളിക്കുടത്ത് വിഷ്ണുമായ ക്ഷേത്രത്തിൽ രജിസ്റ്റർ ചെയ്തു. ഭഗവാൻ വിഷ്ണുമായ നിങ്ങളെ അനുഗ്രഹിക്കട്ടെ.",
+  },
+  registerDone: { en: "Done", ml: "പൂർത്തിയായി" },
+  registerFillAll: {
+    en: "Please enter your name and phone number.",
+    ml: "ദയവായി പേരും ഫോൺ നമ്പറും നൽകൂ.",
+  },
+  registerInvalidPhone: {
+    en: "Please enter a valid mobile number.",
+    ml: "ദയവായി ഒരു ശരിയായ മൊബൈൽ നമ്പർ നൽകൂ.",
+  },
+  registerAlreadyRegistered: {
+    en: "This number is already registered.",
+    ml: "ഈ നമ്പർ ഇതിനകം രജിസ്റ്റർ ചെയ്തിട്ടുണ്ട്.",
+  },
+  registerEnterOTP: { en: "Please enter the OTP.", ml: "ദയവായി OTP നൽകൂ." },
+  registerInvalidOTP: {
+    en: "Invalid OTP. Please try again.",
+    ml: "തെറ്റായ OTP. ദയവായി വീണ്ടും ശ്രമിക്കൂ.",
+  },
+  registerError: {
+    en: "Something went wrong. Please try again.",
+    ml: "എന്തോ കുഴപ്പം. ദയവായി വീണ്ടും ശ്രമിക്കൂ.",
+  },
 };
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
