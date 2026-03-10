@@ -22,7 +22,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-temple-deep/95 backdrop-blur-sm border-b border-temple-gold/30">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black backdrop-blur-sm border-b border-temple-gold/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo / Name */}
@@ -83,7 +83,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="lg:hidden bg-temple-deep border-t border-temple-gold/20 px-4 py-4">
+        <div className="lg:hidden bg-black border-t border-temple-gold/20 px-4 py-4">
           <nav className="flex flex-col gap-3">
             {navItems.map((item, i) => (
               <a
