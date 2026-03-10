@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Temple palette — deep saffron, gold, crimson, warm cream */
+    --background: 0.97 0.008 75;
+    --foreground: 0.18 0.04 40;
+
+    --card: 0.98 0.005 70;
+    --card-foreground: 0.18 0.04 40;
+
+    --popover: 0.98 0.005 70;
+    --popover-foreground: 0.18 0.04 40;
+
+    --primary: 0.62 0.18 46;
+    --primary-foreground: 0.99 0.005 80;
+
+    --secondary: 0.88 0.06 75;
+    --secondary-foreground: 0.25 0.06 40;
+
+    --muted: 0.92 0.03 75;
+    --muted-foreground: 0.5 0.04 50;
+
+    --accent: 0.78 0.14 65;
+    --accent-foreground: 0.18 0.04 40;
+
+    --destructive: 0.55 0.22 27;
+    --destructive-foreground: 0.99 0.005 80;
+
+    --border: 0.88 0.05 65;
+    --input: 0.88 0.05 65;
+    --ring: 0.62 0.18 46;
+
+    --radius: 0.5rem;
+
+    --chart-1: 0.62 0.18 46;
+    --chart-2: 0.72 0.15 60;
+    --chart-3: 0.55 0.22 27;
+    --chart-4: 0.78 0.12 90;
+    --chart-5: 0.45 0.12 300;
+
+    --sidebar: 0.95 0.012 70;
+    --sidebar-foreground: 0.18 0.04 40;
+    --sidebar-primary: 0.62 0.18 46;
+    --sidebar-primary-foreground: 0.99 0.005 80;
+    --sidebar-accent: 0.88 0.06 75;
+    --sidebar-accent-foreground: 0.25 0.06 40;
+    --sidebar-border: 0.88 0.05 65;
+    --sidebar-ring: 0.62 0.18 46;
+
+    /* Custom temple tokens */
+    --temple-saffron: 0.65 0.2 46;
+    --temple-gold: 0.82 0.15 85;
+    --temple-crimson: 0.48 0.22 25;
+    --temple-cream: 0.97 0.008 75;
+    --temple-deep: 0.22 0.06 40;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-size: 18px;
+    line-height: 1.7;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+  }
+  .font-body {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+  }
+  .text-saffron {
+    color: oklch(var(--temple-saffron));
+  }
+  .text-gold {
+    color: oklch(var(--temple-gold));
+  }
+  .text-crimson {
+    color: oklch(var(--temple-crimson));
+  }
+  .bg-temple-deep {
+    background-color: oklch(var(--temple-deep));
+  }
+  .bg-temple-saffron {
+    background-color: oklch(var(--temple-saffron));
+  }
+  .bg-temple-gold {
+    background-color: oklch(var(--temple-gold));
+  }
+  .border-gold {
+    border-color: oklch(var(--temple-gold));
+  }
+
+  .ornament-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .ornament-divider::before,
+  .ornament-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, oklch(var(--temple-gold)), transparent);
+  }
+}
