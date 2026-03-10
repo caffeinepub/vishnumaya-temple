@@ -1,6 +1,10 @@
 import { useLanguage } from "@/context/LanguageContext";
 
-export default function Footer() {
+interface Props {
+  onAdminClick?: () => void;
+}
+
+export default function Footer({ onAdminClick }: Props) {
   const { t } = useLanguage();
   const year = new Date().getFullYear();
   const utmLink = `https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(typeof window !== "undefined" ? window.location.hostname : "")}`;
@@ -30,7 +34,7 @@ export default function Footer() {
           © {year}. {t("footerRights")}
         </p>
         <p
-          className="font-body text-xs"
+          className="font-body text-xs mb-4"
           style={{ color: "oklch(0.5 0.03 60)" }}
         >
           {t("footerBuilt")}{" "}
@@ -44,6 +48,16 @@ export default function Footer() {
             caffeine.ai
           </a>
         </p>
+        {/* Hidden admin access */}
+        <button
+          type="button"
+          onClick={onAdminClick}
+          data-ocid="footer.admin.button"
+          className="text-xs opacity-20 hover:opacity-50 transition-opacity"
+          style={{ color: "oklch(0.5 0.03 60)" }}
+        >
+          Admin
+        </button>
       </div>
     </footer>
   );

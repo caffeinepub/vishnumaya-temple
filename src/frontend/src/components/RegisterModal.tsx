@@ -7,8 +7,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/context/LanguageContext";
+import { useUser } from "@/context/UserContext";
 import { useActor } from "@/hooks/useActor";
-import { CheckCircle, Phone, Shield } from "lucide-react";
+import { CheckCircle, MessageCircle, Phone } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -22,12 +23,14 @@ type Step = "form" | "otp" | "success";
 export default function RegisterModal({ open, onClose }: Props) {
   const { t } = useLanguage();
   const { actor } = useActor();
+  const { setUser } = useUser();
   const [step, setStep] = useState<Step>("form");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [whatsappOpened, setWhatsappOpened] = useState(false);
 
   const handleReset = () => {
     setStep("form");
@@ -35,6 +38,7 @@ export default function RegisterModal({ open, onClose }: Props) {
     setPhone("");
     setOtp("");
     setGeneratedOtp("");
+    setWhatsappOpened(false);
   };
 
   const handleClose = () => {
@@ -65,12 +69,22 @@ export default function RegisterModal({ open, onClose }: Props) {
       const code = await actor.requestOTP(phone.trim(), name.trim());
       setGeneratedOtp(code);
       setStep("otp");
-      toast.success(t("registerOTPSent"));
     } catch {
       toast.error(t("registerError"));
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOpenWhatsApp = () => {
+    const cleanPhone = phone.replace(/[\s+\-]/g, "");
+    const message = encodeURIComponent(
+      `Your OTP for Pallikudath Vishnumaya Temple registration is: ${generatedOtp}\n\nPlease enter this code to complete your registration.`,
+    );
+    const waUrl = `https://wa.me/${cleanPhone}?text=${message}`;
+    window.open(waUrl, "_blank");
+    setWhatsappOpened(true);
+    toast.success("WhatsApp opened — check your messages for the OTP.");
   };
 
   const handleVerifyOTP = async () => {
@@ -86,6 +100,7 @@ export default function RegisterModal({ open, onClose }: Props) {
     try {
       const success = await actor.verifyOTP(phone.trim(), otp.trim());
       if (success) {
+        setUser({ phone: phone.trim(), name: name.trim() });
         setStep("success");
       } else {
         toast.error(t("registerInvalidOTP"));
@@ -161,17 +176,29 @@ export default function RegisterModal({ open, onClose }: Props) {
 
         {step === "otp" && (
           <div className="space-y-4 mt-2">
-            <div className="flex items-start gap-3 bg-yellow-950/40 border border-yellow-600/40 rounded-lg p-3">
-              <Shield size={18} className="text-yellow-400 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-yellow-300 text-sm font-medium">
-                  {t("registerOTPDemoNote")}
-                </p>
-                <p className="text-yellow-200 text-xl font-bold tracking-widest mt-1">
-                  {generatedOtp}
+            <div className="bg-green-950/40 border border-green-600/40 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <MessageCircle size={20} className="text-green-400" />
+                <p className="text-green-300 text-sm font-medium">
+                  Get your OTP via WhatsApp
                 </p>
               </div>
+              <p className="text-gray-400 text-xs">
+                Click the button below to receive your OTP code on WhatsApp at{" "}
+                <span className="text-white font-medium">{phone}</span>.
+              </p>
+              <Button
+                data-ocid="register.whatsapp_otp.button"
+                onClick={handleOpenWhatsApp}
+                className="w-full bg-green-600 hover:bg-green-500 text-white font-semibold flex items-center justify-center gap-2"
+              >
+                <MessageCircle size={16} />
+                {whatsappOpened
+                  ? "Resend via WhatsApp"
+                  : "Send OTP via WhatsApp"}
+              </Button>
             </div>
+
             <div>
               <label
                 htmlFor="reg-otp"
@@ -201,12 +228,17 @@ export default function RegisterModal({ open, onClose }: Props) {
               <Button
                 data-ocid="register.verify.button"
                 onClick={handleVerifyOTP}
-                disabled={loading}
-                className="flex-1 bg-temple-gold text-black hover:bg-temple-gold/90 font-semibold"
+                disabled={loading || !whatsappOpened}
+                className="flex-1 bg-temple-gold text-black hover:bg-temple-gold/90 font-semibold disabled:opacity-50"
               >
                 {loading ? t("registerVerifying") : t("registerVerify")}
               </Button>
             </div>
+            {!whatsappOpened && (
+              <p className="text-gray-500 text-xs text-center">
+                Please get your OTP via WhatsApp before verifying.
+              </p>
+            )}
           </div>
         )}
 

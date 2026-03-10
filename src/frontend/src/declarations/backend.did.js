@@ -28,16 +28,35 @@ export const Pooja = IDL.Record({
   'poojaId' : IDL.Nat,
   'nameMalayalam' : IDL.Text,
 });
+export const Notification = IDL.Record({
+  'id' : IDL.Nat,
+  'message' : IDL.Text,
+  'timestamp' : Time,
+});
+export const User = IDL.Record({
+  'name' : IDL.Text,
+  'phoneNumber' : IDL.Text,
+  'registeredAt' : Time,
+});
 
 export const idlService = IDL.Service({
   'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
   'getAllPoojas' : IDL.Func([], [IDL.Vec(Pooja)], ['query']),
+  'getNotifications' : IDL.Func([], [IDL.Vec(Notification)], ['query']),
+  'getOptedInUsers' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
+  'getUser' : IDL.Func([IDL.Text], [IDL.Opt(User)], ['query']),
+  'getUserNotificationPreference' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
+  'isRegistered' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
+  'publishNotification' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+  'requestOTP' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
+  'setNotificationPreference' : IDL.Func([IDL.Text, IDL.Bool], [], []),
   'submitBooking' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Nat, IDL.Text],
       [IDL.Nat],
       [],
     ),
   'updateBookingStatus' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+  'verifyOTP' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
 });
 
 export const idlInitArgs = [];
@@ -63,16 +82,39 @@ export const idlFactory = ({ IDL }) => {
     'poojaId' : IDL.Nat,
     'nameMalayalam' : IDL.Text,
   });
+  const Notification = IDL.Record({
+    'id' : IDL.Nat,
+    'message' : IDL.Text,
+    'timestamp' : Time,
+  });
+  const User = IDL.Record({
+    'name' : IDL.Text,
+    'phoneNumber' : IDL.Text,
+    'registeredAt' : Time,
+  });
   
   return IDL.Service({
     'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
     'getAllPoojas' : IDL.Func([], [IDL.Vec(Pooja)], ['query']),
+    'getNotifications' : IDL.Func([], [IDL.Vec(Notification)], ['query']),
+    'getOptedInUsers' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
+    'getUser' : IDL.Func([IDL.Text], [IDL.Opt(User)], ['query']),
+    'getUserNotificationPreference' : IDL.Func(
+        [IDL.Text],
+        [IDL.Bool],
+        ['query'],
+      ),
+    'isRegistered' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
+    'publishNotification' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+    'requestOTP' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
+    'setNotificationPreference' : IDL.Func([IDL.Text, IDL.Bool], [], []),
     'submitBooking' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Nat, IDL.Text],
         [IDL.Nat],
         [],
       ),
     'updateBookingStatus' : IDL.Func([IDL.Nat, IDL.Text], [], []),
+    'verifyOTP' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
   });
 };
 

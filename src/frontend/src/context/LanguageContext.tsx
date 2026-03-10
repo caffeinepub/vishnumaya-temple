@@ -15,6 +15,7 @@ const translations: Record<string, Record<Language, string>> = {
   navAbout: { en: "About", ml: "ഞങ്ങളെ കുറിച്ച്" },
   navContact: { en: "Contact", ml: "ബന്ധപ്പെടുക" },
   navRegister: { en: "Register", ml: "രജിസ്റ്റർ" },
+  navToken: { en: "Token", ml: "ടോക്കൺ" },
   langToggle: { en: "മലയാളം", ml: "English" },
 
   // Hero
@@ -175,9 +176,77 @@ const translations: Record<string, Record<Language, string>> = {
     en: "Invalid OTP. Please try again.",
     ml: "തെറ്റായ OTP. ദയവായി വീണ്ടും ശ്രമിക്കൂ.",
   },
+  notificationsOn: { en: "Notifications ON", ml: "അറിയിപ്പുകൾ ഓൺ" },
+  notificationsOff: { en: "Notifications OFF", ml: "അറിയിപ്പുകൾ ഓഫ്" },
+  registeredAs: { en: "Registered", ml: "രജിസ്റ്റർ ചെയ്തു" },
   registerError: {
     en: "Something went wrong. Please try again.",
     ml: "എന്തോ കുഴപ്പം. ദയവായി വീണ്ടും ശ്രമിക്കൂ.",
+  },
+
+  // Admin Panel
+  adminPanel: { en: "Admin Panel", ml: "അഡ്മിൻ പാനൽ" },
+  adminPassword: { en: "Admin Password", ml: "അഡ്മിൻ പാസ്‌വേഡ്" },
+  adminLogin: { en: "Login", ml: "ലോഗിൻ" },
+  adminWrongPassword: { en: "Incorrect password", ml: "തെറ്റായ പാസ്‌വേഡ്" },
+  adminNotificationMessage: {
+    en: "Notification Message",
+    ml: "അറിയിപ്പ് സന്ദേശം",
+  },
+  adminPublish: {
+    en: "Publish & Notify via WhatsApp",
+    ml: "പ്രസിദ്ധീകരിക്കൂ & WhatsApp വഴി അറിയിക്കൂ",
+  },
+  adminPublishing: { en: "Publishing...", ml: "പ്രസിദ്ധീകരിക്കുന്നു..." },
+  adminPublished: {
+    en: "Notification published!",
+    ml: "അറിയിപ്പ് പ്രസിദ്ധീകരിച്ചു!",
+  },
+  adminOptedInUsers: {
+    en: "Send to opted-in users:",
+    ml: "അറിയിപ്പ് ഓൺ ചെയ്ത ഉപയോക്താക്കൾക്ക് അയക്കൂ:",
+  },
+  adminNoOptedInUsers: {
+    en: "No users have opted in for notifications.",
+    ml: "ഒരു ഉപയോക്താവും അറിയിപ്പുകൾ ഓൺ ചെയ്തിട്ടില്ല.",
+  },
+  adminSendWhatsApp: { en: "Send WhatsApp to", ml: "WhatsApp അയക്കൂ" },
+  adminPastNotifications: { en: "Past Notifications", ml: "മുൻ അറിയിപ്പുകൾ" },
+  adminTokens: { en: "Booked Tokens", ml: "ബുക്ക് ചെയ്ത ടോക്കണുകൾ" },
+  adminTokenNumber: { en: "Token #", ml: "ടോക്കൺ #" },
+  adminTokenName: { en: "Name", ml: "പേര്" },
+  adminTokenPhone: { en: "Phone", ml: "ഫോൺ" },
+  adminNoTokens: {
+    en: "No tokens booked yet.",
+    ml: "ഇനിയും ടോക്കണുകൾ ബുക്ക് ചെയ്തിട്ടില്ല.",
+  },
+  notificationPanelTitle: { en: "Temple Notifications", ml: "ക്ഷേത്ര അറിയിപ്പുകൾ" },
+  noNotifications: { en: "No notifications yet.", ml: "ഇനിയും അറിയിപ്പുകൾ ഇല്ല." },
+
+  // Token booking
+  tokenTitle: {
+    en: "Book Your Temple Token",
+    ml: "നിങ്ങളുടെ ക്ഷേത്ര ടോക്കൺ ബുക്ക് ചെയ്യൂ",
+  },
+  tokenSubtitle: {
+    en: "Reserve your token before visiting the temple",
+    ml: "ക്ഷേത്രം സന്ദർശിക്കുന്നതിന് മുൻപ് ടോക്കൺ ബുക്ക് ചെയ്യൂ",
+  },
+  tokenName: { en: "Your Name", ml: "നിങ്ങളുടെ പേര്" },
+  tokenPhone: { en: "WhatsApp Number", ml: "WhatsApp നമ്പർ" },
+  tokenPhonePlaceholder: { en: "e.g. 9876543210", ml: "ഉദാ: 9876543210" },
+  tokenSubmit: { en: "Get Token", ml: "ടോക്കൺ നേടൂ" },
+  tokenSubmitting: { en: "Booking...", ml: "ബുക്ക് ചെയ്യുന്നു..." },
+  tokenSuccess: { en: "Your Token Number", ml: "നിങ്ങളുടെ ടോക്കൺ നമ്പർ" },
+  tokenShareWhatsApp: { en: "Share on WhatsApp", ml: "WhatsApp-ൽ ഷെയർ ചെയ്യൂ" },
+  tokenBookAnother: { en: "Book Another Token", ml: "മറ്റൊരു ടോക്കൺ ബുക്ക് ചെയ്യൂ" },
+  tokenFillAll: {
+    en: "Please fill in all fields.",
+    ml: "എല്ലാ ഫീൽഡുകളും പൂരിപ്പിക്കൂ.",
+  },
+  tokenError: {
+    en: "Unable to book token. Please try again.",
+    ml: "ടോക്കൺ ബുക്ക് ചെയ്യാൻ കഴിഞ്ഞില്ല.",
   },
 };
 

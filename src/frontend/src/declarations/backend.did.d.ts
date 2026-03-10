@@ -19,6 +19,11 @@ export interface Booking {
   'phoneNumber' : string,
   'devoteeName' : string,
 }
+export interface Notification {
+  'id' : bigint,
+  'message' : string,
+  'timestamp' : Time,
+}
 export interface Pooja {
   'fee' : bigint,
   'descriptionEnglish' : string,
@@ -30,11 +35,34 @@ export interface Pooja {
   'nameMalayalam' : string,
 }
 export type Time = bigint;
+export interface User {
+  'name' : string,
+  'phoneNumber' : string,
+  'registeredAt' : Time,
+}
+export interface Token {
+  'tokenNumber' : bigint,
+  'name' : string,
+  'phoneNumber' : string,
+  'bookedAt' : Time,
+}
 export interface _SERVICE {
   'getAllBookings' : ActorMethod<[], Array<Booking>>,
   'getAllPoojas' : ActorMethod<[], Array<Pooja>>,
+  'getNotifications' : ActorMethod<[], Array<Notification>>,
+  'getOptedInUsers' : ActorMethod<[], Array<string>>,
+  'getUser' : ActorMethod<[string], [] | [User]>,
+  'getUserNotificationPreference' : ActorMethod<[string], boolean>,
+  'isRegistered' : ActorMethod<[string], boolean>,
+  'publishNotification' : ActorMethod<[string, string], boolean>,
+  'requestOTP' : ActorMethod<[string, string], string>,
+  'setNotificationPreference' : ActorMethod<[string, boolean], undefined>,
   'submitBooking' : ActorMethod<[string, string, bigint, string], bigint>,
   'updateBookingStatus' : ActorMethod<[bigint, string], undefined>,
+  'verifyOTP' : ActorMethod<[string, string], boolean>,
+  'bookToken' : ActorMethod<[string, string], bigint>,
+  'getAllTokens' : ActorMethod<[], Array<Token>>,
+  'getTokenByPhone' : ActorMethod<[string], [] | [Token]>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

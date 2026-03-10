@@ -1,11 +1,13 @@
 import Array "mo:core/Array";
 import Time "mo:core/Time";
+import Text "mo:core/Text";
 import Order "mo:core/Order";
 import Map "mo:core/Map";
-import Text "mo:core/Text";
-import Runtime "mo:core/Runtime";
 import Nat "mo:core/Nat";
 import Int "mo:core/Int";
+import Runtime "mo:core/Runtime";
+
+
 
 actor {
   type Pooja = {
@@ -61,14 +63,31 @@ actor {
     createdAt : Time.Time;
   };
 
+  type Notification = {
+    id : Nat;
+    message : Text;
+    timestamp : Time.Time;
+  };
+
+  type Token = {
+    tokenNumber : Nat;
+    name : Text;
+    phoneNumber : Text;
+    bookedAt : Time.Time;
+  };
+
   var nextBookingId = 1;
+  var nextNotificationId = 1;
+  var nextTokenNumber = 101;
   let poojas = Map.empty<Nat, Pooja>();
   let bookings = Map.empty<Nat, Booking>();
   let users = Map.empty<Text, User>();
   let pendingOTPs = Map.empty<Text, OTPRecord>();
+  let notifications = Map.empty<Nat, Notification>();
+  let notificationPreferences = Map.empty<Text, Bool>();
+  let tokens = Map.empty<Nat, Token>();
 
   // Generate a 6-digit OTP from current time
-  // Always produces a value in [100000, 999999] to guarantee 6 digits
   func generateOTP(_phone : Text) : Text {
     let t : Int = Time.now();
     let raw : Nat = Int.abs(t / 1_000_000) % 900_000;
@@ -82,7 +101,7 @@ actor {
       poojaId = 2;
       nameEnglish = "Ashtabandha Kalasham";
       nameMalayalam = "അഷ്ടബന്ധ കലശം";
-      descriptionEnglish = "A special ritual for installing deities, involves offerings and ceremonies.";
+      descriptionEnglish = "A special ritual for installing deities.";
       descriptionMalayalam = "പ്രതിഷ്ഠ ദേവതകൾക്ക് വേണ്ടി നടത്തുന്ന ഒരു പ്രത്യേക പൂജ.";
       timing = "By appointment";
       fee = 10000;
@@ -92,8 +111,8 @@ actor {
       poojaId = 3;
       nameEnglish = "Udayasthamana Pooja";
       nameMalayalam = "ഉദ്യാസ്ഥമാന പൂജ";
-      descriptionEnglish = "Continuous worship from sunrise to sunset, including various rituals.";
-      descriptionMalayalam = "സൂര്യോദയത്തിൽ നിന്ന് സൂര്യാസ്ഥമനം വരെ നടത്തപ്പെടുന്ന തുടർച്ചയായ പൂജാ ക്രമങ്ങൾ.";
+      descriptionEnglish = "Continuous worship from sunrise to sunset.";
+      descriptionMalayalam = "സൂര്യോദയത്തിൽ നിന്ന് സൂര്യാസ്ഥമനം വരെ തുടർച്ചയായ പൂജ.";
       timing = "6:00 AM - 6:00 PM";
       fee = 5000;
       availableDays = ["Wednesday", "Saturday"];
@@ -102,8 +121,8 @@ actor {
       poojaId = 4;
       nameEnglish = "Sahasranama Archana";
       nameMalayalam = "സഹസ്രനാമ അർച്ചന";
-      descriptionEnglish = "Recitation of 1000 holy names of the deity being worshipped.";
-      descriptionMalayalam = "ഊർജ്ജസമ്പുഷ്ടമായി ഒരു ദേവതയുടെ ആയിരം പുണ്യനാമങ്ങൾ പാരായണം ചെയ്യുന്നു.";
+      descriptionEnglish = "Recitation of 1000 holy names of the deity.";
+      descriptionMalayalam = "ദേവതയുടെ ആയിരം പുണ്യനാമങ്ങൾ പാരായണം.";
       timing = "6:30 AM, 4:00 PM";
       fee = 1000;
       availableDays = ["All Days"];
@@ -112,8 +131,8 @@ actor {
       poojaId = 5;
       nameEnglish = "Palabhishekam";
       nameMalayalam = "പലാഭിഷേകം";
-      descriptionEnglish = "Offering of milk to the deity, especially lord Vishnumaya.";
-      descriptionMalayalam = "പ്രധാനമായും വിഷ്ണുമായാ ദേവതയ്ക്ക് വേണ്ടി നടത്തിയ മുദ്രാപൂജ.";
+      descriptionEnglish = "Offering of milk to the deity.";
+      descriptionMalayalam = "ദേവതയ്ക്ക് പാൽ അഭിഷേകം.";
       timing = "Morning only";
       fee = 1500;
       availableDays = ["Friday"];
@@ -122,8 +141,8 @@ actor {
       poojaId = 6;
       nameEnglish = "Pushpanjali";
       nameMalayalam = "പുഷ്പാഞ്ജലി";
-      descriptionEnglish = "Offering of flowers to the deity as part of worship.";
-      descriptionMalayalam = "ദേവതയ്ക്ക് സമർപ്പിക്കുന്ന പൂജയുടെ ഭാഗമായ പൂവുകൾ അർപ്പിക്കുന്നു.";
+      descriptionEnglish = "Offering of flowers to the deity.";
+      descriptionMalayalam = "ദേവതയ്ക്ക് പൂവുകൾ അർപ്പിക്കുന്നു.";
       timing = "All Pooja Timings";
       fee = 500;
       availableDays = ["All Days"];
@@ -170,7 +189,30 @@ actor {
     };
   };
 
-  // Registration: request OTP (returns OTP for demo display since no SMS service)
+  // Token Booking
+  public shared func bookToken(name : Text, phoneNumber : Text) : async Nat {
+    let tokenNum = nextTokenNumber;
+    let token : Token = {
+      tokenNumber = tokenNum;
+      name;
+      phoneNumber;
+      bookedAt = Time.now();
+    };
+    tokens.add(tokenNum, token);
+    nextTokenNumber += 1;
+    tokenNum;
+  };
+
+  public query func getAllTokens() : async [Token] {
+    tokens.toArray().map(func((_, t)) { t });
+  };
+
+  public query func getTokenByPhone(phoneNumber : Text) : async ?Token {
+    let found = tokens.toArray().filter(func((_, t)) { t.phoneNumber == phoneNumber });
+    if (found.size() == 0) { null } else { ?(found[found.size() - 1].1) };
+  };
+
+  // Registration: request OTP
   public shared func requestOTP(phoneNumber : Text, name : Text) : async Text {
     if (users.containsKey(phoneNumber)) {
       Runtime.trap("Phone number already registered");
@@ -185,7 +227,6 @@ actor {
     otp;
   };
 
-  // Registration: verify OTP and complete registration
   public shared func verifyOTP(phoneNumber : Text, otp : Text) : async Bool {
     switch (pendingOTPs.get(phoneNumber)) {
       case (null) { false };
@@ -212,13 +253,59 @@ actor {
     };
   };
 
-  // Check if phone number is registered
   public query func isRegistered(phoneNumber : Text) : async Bool {
     users.containsKey(phoneNumber);
   };
 
-  // Get registered user info
   public query func getUser(phoneNumber : Text) : async ?User {
     users.get(phoneNumber);
+  };
+
+  public shared ({ caller }) func setNotificationPreference(phoneNumber : Text, enabled : Bool) : async () {
+    notificationPreferences.add(phoneNumber, enabled);
+  };
+
+  public query ({ caller }) func getUserNotificationPreference(phoneNumber : Text) : async Bool {
+    switch (notificationPreferences.get(phoneNumber)) {
+      case (null) { true };
+      case (?enabled) { enabled };
+    };
+  };
+
+  public query ({ caller }) func getOptedInUsers() : async [Text] {
+    notificationPreferences.toArray().filter(
+      func((_, enabled)) { enabled }
+    ).map(func((phone, _)) { phone });
+  };
+
+  public shared ({ caller }) func publishNotification(message : Text, adminPassword : Text) : async Bool {
+    if (adminPassword != "temple2026") {
+      Runtime.trap("Invalid admin password");
+    };
+    let notification : Notification = {
+      id = nextNotificationId;
+      message;
+      timestamp = Time.now();
+    };
+    notifications.add(nextNotificationId, notification);
+    nextNotificationId += 1;
+    true;
+  };
+
+  public query ({ caller }) func getNotifications() : async [Notification] {
+    let notificationsArray = notifications.toArray().map(
+      func((_, notification)) { notification }
+    );
+    notificationsArray.sort(
+      func(a, b) {
+        if (a.timestamp > b.timestamp) {
+          #less;
+        } else if (a.timestamp < b.timestamp) {
+          #greater;
+        } else {
+          #equal;
+        };
+      }
+    );
   };
 };

@@ -89,6 +89,11 @@ export class ExternalBlob {
         return this;
     }
 }
+export interface Notification {
+    id: bigint;
+    message: string;
+    timestamp: Time;
+}
 export interface Booking {
     status: string;
     bookingId: bigint;
@@ -99,6 +104,11 @@ export interface Booking {
     devoteeName: string;
 }
 export type Time = bigint;
+export interface User {
+    name: string;
+    phoneNumber: string;
+    registeredAt: Time;
+}
 export interface Pooja {
     fee: bigint;
     descriptionEnglish: string;
@@ -112,12 +122,19 @@ export interface Pooja {
 export interface backendInterface {
     getAllBookings(): Promise<Array<Booking>>;
     getAllPoojas(): Promise<Array<Pooja>>;
+    getNotifications(): Promise<Array<Notification>>;
+    getOptedInUsers(): Promise<Array<string>>;
+    getUser(phoneNumber: string): Promise<User | null>;
+    getUserNotificationPreference(phoneNumber: string): Promise<boolean>;
+    isRegistered(phoneNumber: string): Promise<boolean>;
+    publishNotification(message: string, adminPassword: string): Promise<boolean>;
+    requestOTP(phoneNumber: string, name: string): Promise<string>;
+    setNotificationPreference(phoneNumber: string, enabled: boolean): Promise<void>;
     submitBooking(devoteeName: string, phoneNumber: string, poojaId: bigint, preferredDate: string): Promise<bigint>;
     updateBookingStatus(bookingId: bigint, newStatus: string): Promise<void>;
-    requestOTP(phoneNumber: string, name: string): Promise<string>;
     verifyOTP(phoneNumber: string, otp: string): Promise<boolean>;
-    isRegistered(phoneNumber: string): Promise<boolean>;
 }
+import type { User as _User } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async getAllBookings(): Promise<Array<Booking>> {
@@ -145,6 +162,118 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.getAllPoojas();
+            return result;
+        }
+    }
+    async getNotifications(): Promise<Array<Notification>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getNotifications();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getNotifications();
+            return result;
+        }
+    }
+    async getOptedInUsers(): Promise<Array<string>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getOptedInUsers();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getOptedInUsers();
+            return result;
+        }
+    }
+    async getUser(arg0: string): Promise<User | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getUser(arg0);
+                return from_candid_opt_n1(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getUser(arg0);
+            return from_candid_opt_n1(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getUserNotificationPreference(arg0: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getUserNotificationPreference(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getUserNotificationPreference(arg0);
+            return result;
+        }
+    }
+    async isRegistered(arg0: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.isRegistered(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.isRegistered(arg0);
+            return result;
+        }
+    }
+    async publishNotification(arg0: string, arg1: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.publishNotification(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.publishNotification(arg0, arg1);
+            return result;
+        }
+    }
+    async requestOTP(arg0: string, arg1: string): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.requestOTP(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.requestOTP(arg0, arg1);
+            return result;
+        }
+    }
+    async setNotificationPreference(arg0: string, arg1: boolean): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setNotificationPreference(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setNotificationPreference(arg0, arg1);
             return result;
         }
     }
@@ -176,21 +305,24 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-
-    async requestOTP(phoneNumber: string, name: string): Promise<string> {
-        const result = await this.actor.requestOTP(phoneNumber, name);
-        return result;
-    }
-    async verifyOTP(phoneNumber: string, otp: string): Promise<boolean> {
-        const result = await this.actor.verifyOTP(phoneNumber, otp);
-        return result;
-    }
-    async isRegistered(phoneNumber: string): Promise<boolean> {
-        const result = await this.actor.isRegistered(phoneNumber);
-        return result;
+    async verifyOTP(arg0: string, arg1: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.verifyOTP(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.verifyOTP(arg0, arg1);
+            return result;
+        }
     }
 }
-
+function from_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_User]): User | null {
+    return value.length === 0 ? null : value[0];
+}
 export interface CreateActorOptions {
     agent?: Agent;
     agentOptions?: HttpAgentOptions;
