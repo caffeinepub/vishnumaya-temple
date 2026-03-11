@@ -10,16 +10,18 @@ import { useState } from "react";
 
 const navItems = [
   { key: "navHome", href: "#home" },
-  { key: "navBookNow", href: "#booking" },
   { key: "navAbout", href: "#about" },
+  { key: "navBookNow", href: "#booking" },
   { key: "navContact", href: "#contact" },
+  { key: "navLocation", href: "#location" },
 ] as const;
 
 const ocids = [
   "nav.home.link",
-  "nav.book.link",
   "nav.about.link",
+  "nav.book.link",
   "nav.contact.link",
+  "nav.location.link",
 ] as const;
 
 export default function Navbar() {

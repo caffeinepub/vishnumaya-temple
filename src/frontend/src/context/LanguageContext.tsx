@@ -17,6 +17,7 @@ const translations: Record<string, Record<Language, string>> = {
   navRegister: { en: "Register", ml: "രജിസ്റ്റർ" },
   navToken: { en: "Token", ml: "ടോക്കൺ" },
   navGallery: { en: "Gallery", ml: "ഗ്യാലറി" },
+  navLocation: { en: "Location", ml: "സ്ഥാനം" },
   langToggle: { en: "മലയാളം", ml: "English" },
 
   // Hero
@@ -94,21 +95,24 @@ const translations: Record<string, Record<Language, string>> = {
   contactTitle: { en: "Contact & Location", ml: "ബന്ധപ്പെടുക & സ്ഥലം" },
   address: { en: "Address", ml: "വിലാസം" },
   addressText: {
-    en: "Pallikudath Vishnumaya Temple, Kerala, India",
-    ml: "പള്ളിക്കുടത്ത് വിഷ്ണുമായ ക്ഷേത്രം, കേരള, ഇന്ത്യ",
+    en: "Pallikudath Vishnumaya Temple, Pallikudath House, Adat Road, Puranattukara, Thrissur, Kerala - 680551",
+    ml: "പള്ളിക്കുടത്ത് വിഷ്ണുമായ ക്ഷേത്രം, പള്ളിക്കുടത്ത് ഹൗസ്, അടാട്ട് റോഡ്, പുരനാട്ടുകര, തൃശ്ശൂർ, കേരള - 680551",
   },
   phone: { en: "Phone", ml: "ഫോൺ" },
-  phoneText: { en: "+91 00000 00000", ml: "+91 00000 00000" },
+  phoneText: { en: "+91 90749 71633", ml: "+91 90749 71633" },
   openingHours: { en: "Opening Hours", ml: "തുറക്കുന്ന സമയം" },
   morningHours: {
-    en: "Morning: 5:00 AM – 12:00 PM",
-    ml: "രാവിലെ: 5:00 AM – 12:00 PM",
+    en: "Morning: 6:00 AM – 8:00 AM",
+    ml: "രാവിലെ: 6:00 AM – 8:00 AM",
   },
   eveningHours: {
-    en: "Evening: 4:00 PM – 8:30 PM",
-    ml: "വൈകുന്നേരം: 4:00 PM – 8:30 PM",
+    en: "Evening: 6:00 PM – 8:00 PM",
+    ml: "വൈകുന്നേരം: 6:00 PM – 8:00 PM",
   },
-  allDaysOpen: { en: "Open all days", ml: "എല്ലാ ദിവസവും തുറക്കും" },
+  allDaysOpen: {
+    en: "Saturday: 6:00 PM – 11:00 PM | Hours may vary on special days",
+    ml: "ശനിയാഴ്ച: 6:00 PM – 11:00 PM | പ്രത്യേക ദിനങ്ങളിൽ സമയം വ്യത്യാസപ്പെടാം",
+  },
   getDirections: { en: "Get Directions", ml: "ദിശകൾ നേടൂ" },
 
   // Footer

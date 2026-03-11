@@ -4,7 +4,9 @@ import BookingSection from "@/components/BookingSection";
 import ContactSection from "@/components/ContactSection";
 import FloatingContactButton from "@/components/FloatingContactButton";
 import Footer from "@/components/Footer";
+import GoldenBackground from "@/components/GoldenBackground";
 import HeroSection from "@/components/HeroSection";
+import LocationSection from "@/components/LocationSection";
 import Navbar from "@/components/Navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { LanguageProvider } from "@/context/LanguageContext";
@@ -14,7 +16,6 @@ import { useEffect, useState } from "react";
 export default function App() {
   const [adminOpen, setAdminOpen] = useState(false);
 
-  // Open admin panel when URL has #admin hash
   useEffect(() => {
     const checkHash = () => {
       if (window.location.hash === "#admin") {
@@ -29,13 +30,15 @@ export default function App() {
   return (
     <LanguageProvider>
       <UserProvider>
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col relative">
+          <GoldenBackground />
           <Navbar />
           <main className="flex-1 pt-16 lg:pt-20">
             <HeroSection />
-            <BookingSection />
             <AboutSection />
+            <BookingSection />
             <ContactSection />
+            <LocationSection />
           </main>
           <Footer onAdminClick={() => setAdminOpen(true)} />
           <FloatingContactButton />
@@ -45,7 +48,6 @@ export default function App() {
           open={adminOpen}
           onClose={() => {
             setAdminOpen(false);
-            // Remove #admin hash from URL without reload
             if (window.location.hash === "#admin") {
               history.pushState(
                 "",

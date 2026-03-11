@@ -5,9 +5,9 @@ export default function FloatingContactButton() {
   const [open, setOpen] = useState(false);
   const [tokenOpen, setTokenOpen] = useState(false);
 
-  const phoneNumber = "+910000000000";
-  const whatsappNumber = "910000000000";
-  const email = "temple@example.com";
+  const phoneNumber = "+919074971633";
+  const whatsappNumber = "919074971633";
+  const email = "pallikudath@gmail.com";
 
   return (
     <>

@@ -146,7 +146,7 @@ export default function HeroSection() {
                 }}
               >
                 <img
-                  src="/assets/uploads/WhatsApp-Image-2026-03-10-at-7.53.05-PM-1.jpeg"
+                  src="/assets/uploads/WhatsApp-Image-2026-03-10-at-7.53.05-PM-2-1.jpeg"
                   alt="Lord Vishnumaya"
                   className="w-full max-w-xs sm:max-w-sm lg:max-w-md xl:max-w-lg object-cover"
                   loading="eager"
