@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/context/LanguageContext";
 import { useUser } from "@/context/UserContext";
 import { useActor } from "@/hooks/useActor";
-import { CheckCircle, Eye, EyeOff, Phone } from "lucide-react";
+import { CheckCircle, Eye, EyeOff, KeyRound, Phone } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -18,7 +18,7 @@ interface Props {
   onClose: () => void;
 }
 
-type Tab = "register" | "signin";
+type Tab = "register" | "signin" | "forgot";
 type Step = "form" | "success";
 
 const PASSWORDS_KEY = "temple_passwords";
@@ -59,6 +59,13 @@ export default function RegisterModal({ open, onClose }: Props) {
   const [signPassword, setSignPassword] = useState("");
   const [showSignPwd, setShowSignPwd] = useState(false);
 
+  // Forgot password fields
+  const [forgotPhone, setForgotPhone] = useState("");
+  const [forgotNewPwd, setForgotNewPwd] = useState("");
+  const [forgotConfirmPwd, setForgotConfirmPwd] = useState("");
+  const [showForgotNewPwd, setShowForgotNewPwd] = useState(false);
+  const [showForgotConfirmPwd, setShowForgotConfirmPwd] = useState(false);
+
   const resetAll = () => {
     setTab("register");
     setStep("form");
@@ -71,6 +78,11 @@ export default function RegisterModal({ open, onClose }: Props) {
     setSignPhone("");
     setSignPassword("");
     setShowSignPwd(false);
+    setForgotPhone("");
+    setForgotNewPwd("");
+    setForgotConfirmPwd("");
+    setShowForgotNewPwd(false);
+    setShowForgotConfirmPwd(false);
   };
 
   const handleClose = () => {
@@ -167,6 +179,49 @@ export default function RegisterModal({ open, onClose }: Props) {
     }
   };
 
+  // ---- Forgot Password ----
+  const handleResetPassword = async () => {
+    if (!forgotPhone.trim() || !forgotNewPwd || !forgotConfirmPwd) {
+      toast.error("Please fill in all fields.");
+      return;
+    }
+    if (!validatePhone(forgotPhone)) {
+      toast.error(t("registerInvalidPhone"));
+      return;
+    }
+    if (forgotNewPwd.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    if (forgotNewPwd !== forgotConfirmPwd) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+    if (!actor) {
+      toast.error(t("registerError"));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const isReg = await actor.isRegistered(forgotPhone.trim());
+      if (!isReg) {
+        toast.error("No account found with this number.");
+        return;
+      }
+      savePassword(forgotPhone.trim(), forgotNewPwd);
+      toast.success("Password reset successfully!");
+      setForgotPhone("");
+      setForgotNewPwd("");
+      setForgotConfirmPwd("");
+      setTab("signin");
+    } catch {
+      toast.error(t("registerError"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
       <DialogContent
@@ -175,40 +230,46 @@ export default function RegisterModal({ open, onClose }: Props) {
       >
         <DialogHeader>
           <DialogTitle className="text-temple-gold font-display text-xl flex items-center gap-2">
-            <Phone size={20} />
-            {tab === "register" ? t("registerTitle") : "Sign In"}
+            {tab === "forgot" ? <KeyRound size={20} /> : <Phone size={20} />}
+            {tab === "register"
+              ? t("registerTitle")
+              : tab === "signin"
+                ? "Sign In"
+                : "Reset Password"}
           </DialogTitle>
         </DialogHeader>
 
         {step === "form" && (
           <>
-            {/* Tabs */}
-            <div className="flex border border-gray-700 rounded-lg overflow-hidden mb-4">
-              <button
-                type="button"
-                data-ocid="register.register.tab"
-                onClick={() => setTab("register")}
-                className={`flex-1 py-2 text-sm font-semibold transition-colors ${
-                  tab === "register"
-                    ? "bg-temple-gold text-black"
-                    : "bg-transparent text-gray-400 hover:text-white"
-                }`}
-              >
-                Register
-              </button>
-              <button
-                type="button"
-                data-ocid="register.signin.tab"
-                onClick={() => setTab("signin")}
-                className={`flex-1 py-2 text-sm font-semibold transition-colors ${
-                  tab === "signin"
-                    ? "bg-temple-gold text-black"
-                    : "bg-transparent text-gray-400 hover:text-white"
-                }`}
-              >
-                Sign In
-              </button>
-            </div>
+            {/* Tabs — only show for register/signin */}
+            {tab !== "forgot" && (
+              <div className="flex border border-gray-700 rounded-lg overflow-hidden mb-4">
+                <button
+                  type="button"
+                  data-ocid="register.register.tab"
+                  onClick={() => setTab("register")}
+                  className={`flex-1 py-2 text-sm font-semibold transition-colors ${
+                    tab === "register"
+                      ? "bg-temple-gold text-black"
+                      : "bg-transparent text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Register
+                </button>
+                <button
+                  type="button"
+                  data-ocid="register.signin.tab"
+                  onClick={() => setTab("signin")}
+                  className={`flex-1 py-2 text-sm font-semibold transition-colors ${
+                    tab === "signin"
+                      ? "bg-temple-gold text-black"
+                      : "bg-transparent text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Sign In
+                </button>
+              </div>
+            )}
 
             {tab === "register" && (
               <div className="space-y-3">
@@ -381,6 +442,18 @@ export default function RegisterModal({ open, onClose }: Props) {
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
 
+                {/* Forgot Password link */}
+                <div className="text-center">
+                  <button
+                    type="button"
+                    data-ocid="signin.forgot_password.link"
+                    onClick={() => setTab("forgot")}
+                    className="text-temple-gold/80 hover:text-temple-gold text-xs hover:underline transition-colors"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+
                 <p className="text-center text-gray-500 text-xs">
                   Don't have an account?{" "}
                   <button
@@ -392,6 +465,116 @@ export default function RegisterModal({ open, onClose }: Props) {
                     Register here
                   </button>
                 </p>
+              </div>
+            )}
+
+            {tab === "forgot" && (
+              <div className="space-y-3">
+                <p className="text-gray-300 text-sm">
+                  Enter your registered mobile number and set a new password.
+                </p>
+
+                <div>
+                  <label
+                    htmlFor="forgot-phone"
+                    className="text-sm text-gray-400 mb-1 block"
+                  >
+                    Mobile Number
+                  </label>
+                  <Input
+                    id="forgot-phone"
+                    data-ocid="forgotpwd.phone.input"
+                    value={forgotPhone}
+                    onChange={(e) => setForgotPhone(e.target.value)}
+                    placeholder={t("registerPhonePlaceholder")}
+                    type="tel"
+                    className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus:border-temple-gold"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="forgot-new-pwd"
+                    className="text-sm text-gray-400 mb-1 block"
+                  >
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <Input
+                      id="forgot-new-pwd"
+                      data-ocid="forgotpwd.new_password.input"
+                      type={showForgotNewPwd ? "text" : "password"}
+                      value={forgotNewPwd}
+                      onChange={(e) => setForgotNewPwd(e.target.value)}
+                      placeholder="Min. 6 characters"
+                      className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus:border-temple-gold pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotNewPwd(!showForgotNewPwd)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    >
+                      {showForgotNewPwd ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="forgot-confirm-pwd"
+                    className="text-sm text-gray-400 mb-1 block"
+                  >
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
+                    <Input
+                      id="forgot-confirm-pwd"
+                      data-ocid="forgotpwd.confirm_password.input"
+                      type={showForgotConfirmPwd ? "text" : "password"}
+                      value={forgotConfirmPwd}
+                      onChange={(e) => setForgotConfirmPwd(e.target.value)}
+                      placeholder="Re-enter new password"
+                      className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus:border-temple-gold pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowForgotConfirmPwd(!showForgotConfirmPwd)
+                      }
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    >
+                      {showForgotConfirmPwd ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <Button
+                  data-ocid="forgotpwd.submit_button"
+                  onClick={handleResetPassword}
+                  disabled={loading}
+                  className="w-full bg-temple-gold text-black hover:bg-temple-gold/90 font-semibold mt-2"
+                >
+                  {loading ? "Resetting..." : "Reset Password"}
+                </Button>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    data-ocid="forgotpwd.back.link"
+                    onClick={() => setTab("signin")}
+                    className="text-temple-gold/80 hover:text-temple-gold text-xs hover:underline transition-colors"
+                  >
+                    ← Back to Sign In
+                  </button>
+                </div>
               </div>
             )}
           </>

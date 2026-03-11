@@ -301,6 +301,18 @@ const translations: Record<string, Record<Language, string>> = {
     ml: "ടോക്കൺ ബുക്ക് ചെയ്യാൻ കഴിഞ്ഞില്ല.",
   },
 
+  // Booking slip
+  slipTemple: { en: "Booking Slip", ml: "ബുക്കിംഗ് സ്ലിപ്പ്" },
+  slipRef: { en: "Booking Ref", ml: "ബുക്കിംഗ് റഫ." },
+  slipFooter: {
+    en: "Please bring this slip to the temple on the day of your pooja.",
+    ml: "പൂജ ദിവസം ഈ സ്ലിപ്പ് ക്ഷേത്രത്തിൽ കൊണ്ടുവരൂ.",
+  },
+  slipSendWhatsApp: {
+    en: "Send Slip via WhatsApp",
+    ml: "WhatsApp വഴി സ്ലിപ്പ് അയക്കൂ",
+  },
+
   // Gallery
   galleryTitle: { en: "Temple Gallery", ml: "ക്ഷേത്ര ഗ്യാലറി" },
   galleryUpload: { en: "Upload Photo/Video", ml: "ഫോട്ടോ/വീഡിയോ അപ്‌ലോഡ് ചെയ്യുക" },

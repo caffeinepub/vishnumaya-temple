@@ -4,9 +4,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSubmitBooking } from "@/hooks/useQueries";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, MessageCircle, Printer } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
+
+const TEMPLE_WHATSAPP = "919074971633";
+
+function generateBookingRef() {
+  return `BK${Date.now().toString().slice(-6)}`;
+}
 
 export default function BookingSection() {
   const { t } = useLanguage();
@@ -18,6 +24,13 @@ export default function BookingSection() {
   const [preferredDate, setPreferredDate] = useState("");
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [validationError, setValidationError] = useState("");
+  const [bookingRef, setBookingRef] = useState("");
+  const [slippedData, setSlippedData] = useState<{
+    name: string;
+    phone: string;
+    pooja: string;
+    date: string;
+  } | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,13 +39,43 @@ export default function BookingSection() {
       setValidationError(t("allFieldsRequired"));
       return;
     }
+    const ref = generateBookingRef();
     submitBooking(
       { devoteeName, phoneNumber, poojaId: BigInt(0), preferredDate },
       {
-        onSuccess: () => setStatus("success"),
+        onSuccess: () => {
+          setBookingRef(ref);
+          setSlippedData({
+            name: devoteeName,
+            phone: phoneNumber,
+            pooja: poojaDescription,
+            date: preferredDate,
+          });
+          setStatus("success");
+        },
         onError: () => setStatus("error"),
       },
     );
+  };
+
+  const handleSendWhatsApp = () => {
+    if (!slippedData) return;
+    const msg = [
+      "🙏 *BOOKING SLIP* 🙏",
+      "━━━━━━━━━━━━━━━━━━━━━",
+      `*${t("slipTemple")}*`,
+      "Pallikudath Vishnumaya Temple",
+      "━━━━━━━━━━━━━━━━━━━━━",
+      `📋 *${t("slipRef")}:* ${bookingRef}`,
+      `👤 *${t("devoteeName")}:* ${slippedData.name}`,
+      `📞 *${t("phoneNumber")}:* ${slippedData.phone}`,
+      `🕉️ *${t("whichPooja")}:* ${slippedData.pooja}`,
+      `📅 *${t("preferredDate")}:* ${slippedData.date}`,
+      "━━━━━━━━━━━━━━━━━━━━━",
+      `✅ ${t("slipFooter")}`,
+    ].join("\n");
+    const url = `https://wa.me/${TEMPLE_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
   };
 
   const resetForm = () => {
@@ -42,6 +85,8 @@ export default function BookingSection() {
     setPreferredDate("");
     setStatus("idle");
     setValidationError("");
+    setBookingRef("");
+    setSlippedData(null);
   };
 
   return (
@@ -84,37 +129,123 @@ export default function BookingSection() {
         </motion.div>
 
         <AnimatePresence mode="wait">
-          {status === "success" ? (
+          {status === "success" && slippedData ? (
             <motion.div
-              key="success"
+              key="slip"
               data-ocid="booking.success_state"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="rounded-xl p-8 text-center"
+              className="rounded-xl overflow-hidden"
               style={{
-                background: "oklch(0.98 0.005 80)",
-                border: "1px solid oklch(0.82 0.15 85 / 0.5)",
+                border: "2px solid oklch(0.82 0.15 85 / 0.6)",
+                boxShadow: "0 20px 60px oklch(0.12 0.04 40 / 0.5)",
               }}
             >
-              <CheckCircle2
-                size={56}
-                className="mx-auto mb-4"
-                style={{ color: "oklch(0.65 0.2 46)" }}
-              />
-              <p className="font-body text-lg text-foreground leading-relaxed mb-6">
-                {t("bookingSuccess")}
-              </p>
-              <Button
-                onClick={resetForm}
+              {/* Slip header */}
+              <div
+                className="px-6 py-5 text-center"
                 style={{
                   background:
-                    "linear-gradient(135deg, oklch(0.65 0.2 46), oklch(0.55 0.22 35))",
-                  color: "oklch(0.98 0.005 80)",
+                    "linear-gradient(135deg, oklch(0.25 0.08 40), oklch(0.20 0.06 35))",
+                  borderBottom: "2px dashed oklch(0.82 0.15 85 / 0.4)",
                 }}
               >
-                {t("bookAnother")}
-              </Button>
+                <p
+                  className="font-display text-sm font-semibold uppercase tracking-widest mb-1"
+                  style={{ color: "oklch(0.82 0.15 85)" }}
+                >
+                  {t("slipTemple")}
+                </p>
+                <h3
+                  className="font-display text-xl sm:text-2xl font-bold"
+                  style={{ color: "oklch(0.96 0.08 80)" }}
+                >
+                  Pallikudath Vishnumaya Temple
+                </h3>
+                <p
+                  className="mt-2 text-sm font-mono font-bold px-3 py-1 rounded-full inline-block"
+                  style={{
+                    background: "oklch(0.82 0.15 85 / 0.15)",
+                    color: "oklch(0.88 0.12 85)",
+                    border: "1px solid oklch(0.82 0.15 85 / 0.4)",
+                  }}
+                >
+                  {t("slipRef")}: {bookingRef}
+                </p>
+              </div>
+
+              {/* Slip body */}
+              <div
+                className="px-6 py-6 space-y-3"
+                style={{ background: "oklch(0.98 0.005 80)" }}
+              >
+                {[
+                  { label: t("devoteeName"), value: slippedData.name },
+                  { label: t("phoneNumber"), value: slippedData.phone },
+                  { label: t("whichPooja"), value: slippedData.pooja },
+                  { label: t("preferredDate"), value: slippedData.date },
+                ].map(({ label, value }) => (
+                  <div
+                    key={label}
+                    className="flex gap-3 pb-3"
+                    style={{ borderBottom: "1px dashed oklch(0.85 0.05 80)" }}
+                  >
+                    <span
+                      className="font-body text-sm font-semibold min-w-[120px]"
+                      style={{ color: "oklch(0.45 0.06 40)" }}
+                    >
+                      {label}
+                    </span>
+                    <span
+                      className="font-body text-sm"
+                      style={{ color: "oklch(0.25 0.04 40)" }}
+                    >
+                      {value}
+                    </span>
+                  </div>
+                ))}
+
+                {/* Footer note */}
+                <p
+                  className="text-center text-xs pt-1"
+                  style={{ color: "oklch(0.55 0.05 40)" }}
+                >
+                  {t("slipFooter")}
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div
+                className="px-6 py-5 flex flex-col sm:flex-row gap-3"
+                style={{
+                  background: "oklch(0.95 0.01 80)",
+                  borderTop: "1px solid oklch(0.88 0.05 80)",
+                }}
+              >
+                <Button
+                  data-ocid="booking.whatsapp_button"
+                  onClick={handleSendWhatsApp}
+                  className="flex-1 flex items-center justify-center gap-2 font-display text-base py-5"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, oklch(0.55 0.2 146), oklch(0.45 0.22 146))",
+                    color: "white",
+                  }}
+                >
+                  <MessageCircle size={18} />
+                  {t("slipSendWhatsApp")}
+                </Button>
+                <Button
+                  data-ocid="booking.new_button"
+                  variant="outline"
+                  onClick={resetForm}
+                  className="flex-1 flex items-center justify-center gap-2 font-display text-base py-5"
+                >
+                  <Printer size={18} />
+                  {t("bookAnother")}
+                </Button>
+              </div>
             </motion.div>
           ) : (
             <motion.form

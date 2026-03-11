@@ -1,10 +1,11 @@
 import { ExternalBlob } from "@/backend";
-import type { GalleryItem } from "@/backend.d";
+import type { Booking, GalleryItem } from "@/backend.d";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/context/LanguageContext";
 import { useActor } from "@/hooks/useActor";
 import {
   Bell,
+  BookOpen,
   ExternalLink,
   Images,
   Loader2,
@@ -78,7 +79,7 @@ export default function AdminPanel({ open, onClose }: Props) {
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [activeTab, setActiveTab] = useState<
-    "notifications" | "tokens" | "gallery"
+    "notifications" | "tokens" | "gallery" | "bookings"
   >("notifications");
 
   const [message, setMessage] = useState("");
@@ -101,6 +102,9 @@ export default function AdminPanel({ open, onClose }: Props) {
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [loadingGallery, setLoadingGallery] = useState(false);
   const [deletingId, setDeletingId] = useState<bigint | null>(null);
+
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
 
   useEffect(() => {
     if (open && authed && actor && !isFetching) {
@@ -146,6 +150,23 @@ export default function AdminPanel({ open, onClose }: Props) {
         )
         .catch(() => {})
         .finally(() => setLoadingGallery(false));
+    }
+  }, [open, authed, activeTab, actor, isFetching]);
+
+  useEffect(() => {
+    if (open && authed && activeTab === "bookings" && actor && !isFetching) {
+      setLoadingBookings(true);
+      actor
+        .getAllBookings()
+        .then((data) =>
+          setBookings(
+            [...data].sort((a, b) =>
+              Number(b.createdTimestamp - a.createdTimestamp),
+            ),
+          ),
+        )
+        .catch(() => {})
+        .finally(() => setLoadingBookings(false));
     }
   }, [open, authed, activeTab, actor, isFetching]);
 
@@ -230,8 +251,20 @@ export default function AdminPanel({ open, onClose }: Props) {
       setBroadcasting(false);
       setBroadcastDone(false);
       setActiveTab("notifications");
+      setBookings([]);
     }, 300);
   };
+
+  function getStatusStyle(status: string) {
+    switch (status.toLowerCase()) {
+      case "confirmed":
+        return "bg-green-900/40 text-green-400";
+      case "cancelled":
+        return "bg-red-900/40 text-red-400";
+      default:
+        return "bg-yellow-900/40 text-yellow-400";
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -326,12 +359,12 @@ export default function AdminPanel({ open, onClose }: Props) {
                   /* Admin Dashboard */
                   <div className="flex flex-col">
                     {/* Tabs */}
-                    <div className="flex border-b border-temple-gold/20 bg-zinc-950 shrink-0">
+                    <div className="flex border-b border-temple-gold/20 bg-zinc-950 shrink-0 overflow-x-auto">
                       <button
                         type="button"
                         data-ocid="admin.tab"
                         onClick={() => setActiveTab("notifications")}
-                        className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
+                        className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
                           activeTab === "notifications"
                             ? "border-temple-gold text-temple-gold"
                             : "border-transparent text-gray-400 hover:text-white"
@@ -344,7 +377,7 @@ export default function AdminPanel({ open, onClose }: Props) {
                         type="button"
                         data-ocid="admin.tab"
                         onClick={() => setActiveTab("tokens")}
-                        className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
+                        className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
                           activeTab === "tokens"
                             ? "border-temple-gold text-temple-gold"
                             : "border-transparent text-gray-400 hover:text-white"
@@ -357,7 +390,7 @@ export default function AdminPanel({ open, onClose }: Props) {
                         type="button"
                         data-ocid="admin.tab"
                         onClick={() => setActiveTab("gallery")}
-                        className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
+                        className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
                           activeTab === "gallery"
                             ? "border-temple-gold text-temple-gold"
                             : "border-transparent text-gray-400 hover:text-white"
@@ -365,6 +398,19 @@ export default function AdminPanel({ open, onClose }: Props) {
                       >
                         <Images size={14} />
                         {t("adminGallery")}
+                      </button>
+                      <button
+                        type="button"
+                        data-ocid="admin.tab"
+                        onClick={() => setActiveTab("bookings")}
+                        className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
+                          activeTab === "bookings"
+                            ? "border-temple-gold text-temple-gold"
+                            : "border-transparent text-gray-400 hover:text-white"
+                        }`}
+                      >
+                        <BookOpen size={14} />
+                        Bookings
                       </button>
                     </div>
 
@@ -604,7 +650,7 @@ export default function AdminPanel({ open, onClose }: Props) {
                           </div>
                         )}
                       </div>
-                    ) : (
+                    ) : activeTab === "gallery" ? (
                       /* Gallery tab */
                       <div className="px-6 py-6 flex flex-col gap-4">
                         <h3 className="text-temple-gold text-sm font-semibold flex items-center gap-2">
@@ -701,6 +747,98 @@ export default function AdminPanel({ open, onClose }: Props) {
                                 </button>
                               </div>
                             ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      /* Bookings tab */
+                      <div className="px-6 py-6 flex flex-col gap-4">
+                        <h3 className="text-temple-gold text-sm font-semibold flex items-center gap-2">
+                          <BookOpen size={15} />
+                          Bookings ({bookings.length})
+                        </h3>
+                        {loadingBookings ? (
+                          <div
+                            data-ocid="admin.loading_state"
+                            className="flex items-center gap-2 text-gray-500 text-sm animate-pulse"
+                          >
+                            <Loader2 size={14} className="animate-spin" />
+                            Loading…
+                          </div>
+                        ) : bookings.length === 0 ? (
+                          <p
+                            data-ocid="admin.empty_state"
+                            className="text-gray-500 text-sm"
+                          >
+                            No bookings found.
+                          </p>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <table
+                              className="w-full text-sm"
+                              data-ocid="admin.table"
+                            >
+                              <thead>
+                                <tr className="border-b border-zinc-800">
+                                  <th className="text-left text-temple-gold/70 font-medium py-2 pr-3 text-xs whitespace-nowrap">
+                                    Ref
+                                  </th>
+                                  <th className="text-left text-temple-gold/70 font-medium py-2 pr-3 text-xs">
+                                    Name
+                                  </th>
+                                  <th className="text-left text-temple-gold/70 font-medium py-2 pr-3 text-xs">
+                                    Phone
+                                  </th>
+                                  <th className="text-left text-temple-gold/70 font-medium py-2 pr-3 text-xs">
+                                    Pooja
+                                  </th>
+                                  <th className="text-left text-temple-gold/70 font-medium py-2 pr-3 text-xs whitespace-nowrap">
+                                    Date
+                                  </th>
+                                  <th className="text-left text-temple-gold/70 font-medium py-2 text-xs">
+                                    Status
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {bookings.map((booking, i) => (
+                                  <tr
+                                    key={String(booking.bookingId)}
+                                    data-ocid={`admin.item.${i + 1}`}
+                                    className="border-b border-zinc-900 hover:bg-zinc-900/50 transition-colors"
+                                  >
+                                    <td className="py-2.5 pr-3">
+                                      <span className="text-temple-gold font-mono text-xs font-bold">
+                                        BK{String(booking.bookingId).slice(-6)}
+                                      </span>
+                                    </td>
+                                    <td className="py-2.5 pr-3 text-white text-xs">
+                                      {booking.devoteeName}
+                                    </td>
+                                    <td className="py-2.5 pr-3 text-gray-400 font-mono text-xs">
+                                      {booking.phoneNumber}
+                                    </td>
+                                    <td className="py-2.5 pr-3 text-gray-300 text-xs max-w-[100px] truncate">
+                                      {booking.preferredDate || "—"}
+                                    </td>
+                                    <td className="py-2.5 pr-3 text-gray-400 text-xs whitespace-nowrap">
+                                      {formatTimestamp(
+                                        booking.createdTimestamp,
+                                      )}
+                                    </td>
+                                    <td className="py-2.5">
+                                      <span
+                                        className={`inline-block text-xs px-2 py-0.5 rounded font-medium capitalize ${getStatusStyle(
+                                          booking.status,
+                                        )}`}
+                                      >
+                                        {booking.status}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
                           </div>
                         )}
                       </div>

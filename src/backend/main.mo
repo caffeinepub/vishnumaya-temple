@@ -180,7 +180,7 @@ actor {
   };
 
   public shared ({ caller }) func submitBooking(devoteeName : Text, phoneNumber : Text, poojaId : Nat, preferredDate : Text) : async Nat {
-    if (not poojas.containsKey(poojaId)) { Runtime.trap("Pooja does not exist") };
+
     let booking : Booking = {
       bookingId = nextBookingId;
       devoteeName;
