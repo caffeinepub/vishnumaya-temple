@@ -114,6 +114,12 @@ const translations: Record<string, Record<Language, string>> = {
     ml: "ശനിയാഴ്ച: 6:00 PM – 11:00 PM | പ്രത്യേക ദിനങ്ങളിൽ സമയം വ്യത്യാസപ്പെടാം",
   },
   getDirections: { en: "Get Directions", ml: "ദിശകൾ നേടൂ" },
+  whatsapp: { en: "WhatsApp", ml: "വാട്ട്‌സ്ആപ്പ്" },
+  whatsappText: { en: "+91 90749 71633", ml: "+91 90749 71633" },
+  chatOnWhatsApp: { en: "Chat on WhatsApp", ml: "WhatsApp-ൽ സംസാരിക്കൂ" },
+  email: { en: "Email", ml: "ഇമെയിൽ" },
+  emailText: { en: "pallikudath@gmail.com", ml: "pallikudath@gmail.com" },
+  sendEmail: { en: "Send Email", ml: "ഇമെയിൽ അയക്കൂ" },
 
   // Footer
   footerRights: { en: "All rights reserved.", ml: "എല്ലാ അവകാശങ്ങളും നിക്ഷിപ്തമാണ്." },

@@ -133,7 +133,7 @@ export default function TokenModal({ open, onClose }: Props) {
             className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           >
             <div
-              className="w-full max-w-md bg-zinc-950 border border-temple-gold/40 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto"
+              className="w-full max-w-lg bg-zinc-950 border border-temple-gold/40 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto"
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
             >
@@ -156,7 +156,7 @@ export default function TokenModal({ open, onClose }: Props) {
                 </button>
               </div>
 
-              <div className="px-6 py-6 overflow-y-auto max-h-[75vh]">
+              <div className="px-6 py-6 overflow-y-auto max-h-[80vh]">
                 {tokenNumber === null ? (
                   step === "calendar" ? (
                     /* Step 1: Date selection */
@@ -182,15 +182,15 @@ export default function TokenModal({ open, onClose }: Props) {
                         </p>
                       </div>
 
-                      {/* Calendar */}
-                      <div className="flex justify-center">
+                      {/* Calendar — white background, black digits, full width */}
+                      <div className="w-full">
                         <Calendar
                           mode="single"
                           selected={selectedDate}
                           onSelect={handleDateSelect}
                           disabled={disabledDays}
                           data-ocid="token.calendar"
-                          className="rounded-xl border border-temple-gold/20 bg-zinc-900 text-white [&_.rdp-day_button:hover]:bg-temple-gold/20 [&_.rdp-day_button.rdp-day_selected]:bg-temple-gold [&_.rdp-day_button.rdp-day_selected]:text-black"
+                          className="rounded-xl border border-temple-gold/30 bg-white text-black w-full [&_button]:text-black [&_button:hover]:bg-gray-100 [&_[data-selected=true]]:bg-temple-gold [&_[data-selected=true]]:text-black [&_[data-selected-single=true]]:bg-temple-gold [&_[data-selected-single=true]]:text-black [&_[data-outside=true]]:text-gray-400 [&_[data-disabled=true]]:text-gray-300 [&_[data-disabled=true]]:opacity-40 [&_.rdp-caption]:text-black [&_.rdp-head_cell]:text-black [&_.rdp-nav_button]:text-black [&_.rdp-day]:text-black [&_td]:p-1 [&_th]:p-1"
                         />
                       </div>
 
