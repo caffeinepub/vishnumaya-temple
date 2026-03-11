@@ -9,6 +9,7 @@ import {
   Images,
   Loader2,
   Lock,
+  MessageSquare,
   Send,
   Ticket,
   Trash2,
@@ -86,6 +87,8 @@ export default function AdminPanel({ open, onClose }: Props) {
   const [publishError, setPublishError] = useState("");
   const [optedInUsers, setOptedInUsers] = useState<string[]>([]);
   const [showWhatsAppLinks, setShowWhatsAppLinks] = useState(false);
+  const [broadcasting, setBroadcasting] = useState(false);
+  const [broadcastDone, setBroadcastDone] = useState(false);
 
   const [pastNotifications, setPastNotifications] = useState<Notification[]>(
     [],
@@ -174,6 +177,7 @@ export default function AdminPanel({ open, onClose }: Props) {
     setPublishError("");
     setPublished(false);
     setShowWhatsAppLinks(false);
+    setBroadcastDone(false);
     try {
       const success = await actor.publishNotification(
         message.trim(),
@@ -196,6 +200,22 @@ export default function AdminPanel({ open, onClose }: Props) {
     }
   };
 
+  const handleBroadcastAll = () => {
+    if (!optedInUsers.length || !message.trim()) return;
+    setBroadcasting(true);
+    setBroadcastDone(false);
+    optedInUsers.forEach((phone, i) => {
+      setTimeout(() => {
+        const url = `https://wa.me/${phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(message)}`;
+        window.open(url, "_blank", "noopener,noreferrer");
+        if (i === optedInUsers.length - 1) {
+          setBroadcasting(false);
+          setBroadcastDone(true);
+        }
+      }, i * 500);
+    });
+  };
+
   const handleClose = () => {
     onClose();
     setTimeout(() => {
@@ -207,6 +227,8 @@ export default function AdminPanel({ open, onClose }: Props) {
       setPublishError("");
       setShowWhatsAppLinks(false);
       setOptedInUsers([]);
+      setBroadcasting(false);
+      setBroadcastDone(false);
       setActiveTab("notifications");
     }, 300);
   };
@@ -294,7 +316,7 @@ export default function AdminPanel({ open, onClose }: Props) {
                     </div>
                     <Button
                       onClick={handlePasswordLogin}
-                      data-ocid="admin.primary_button"
+                      data-ocid="admin.submit_button"
                       className="bg-temple-gold text-black hover:bg-temple-gold/80 font-semibold w-full"
                     >
                       {t("adminLogin")}
@@ -411,10 +433,45 @@ export default function AdminPanel({ open, onClose }: Props) {
                                 {t("adminNoOptedInUsers")}
                               </p>
                             ) : (
-                              <div className="flex flex-col gap-2">
-                                <p className="text-gray-400 text-xs">
-                                  Click each link below to open WhatsApp and
-                                  send the notification:
+                              <div className="flex flex-col gap-3">
+                                {/* Broadcast All Button */}
+                                <motion.button
+                                  type="button"
+                                  onClick={handleBroadcastAll}
+                                  disabled={broadcasting}
+                                  data-ocid="admin.primary_button"
+                                  whileTap={{ scale: 0.97 }}
+                                  className="w-full flex items-center justify-center gap-2.5 bg-green-600 hover:bg-green-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-sm px-4 py-3 rounded-xl transition-colors shadow-lg shadow-green-900/30"
+                                >
+                                  {broadcasting ? (
+                                    <>
+                                      <Loader2
+                                        size={16}
+                                        className="animate-spin"
+                                      />
+                                      Opening WhatsApp chats…
+                                    </>
+                                  ) : (
+                                    <>
+                                      <MessageSquare size={16} />
+                                      Send to All ({optedInUsers.length} users)
+                                    </>
+                                  )}
+                                </motion.button>
+
+                                {broadcastDone && (
+                                  <p
+                                    data-ocid="admin.success_state"
+                                    className="text-green-400 text-xs font-medium text-center"
+                                  >
+                                    ✅ Opened WhatsApp for all{" "}
+                                    {optedInUsers.length} users
+                                  </p>
+                                )}
+
+                                {/* Individual links fallback */}
+                                <p className="text-gray-500 text-xs font-medium mt-1">
+                                  Or send individually:
                                 </p>
                                 <ul className="flex flex-col gap-2">
                                   {optedInUsers.map((phone, i) => (
@@ -430,8 +487,7 @@ export default function AdminPanel({ open, onClose }: Props) {
                                         href={`https://wa.me/${phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(message)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        data-ocid="admin.primary_button"
-                                        className="flex items-center gap-1 text-xs bg-green-600 hover:bg-green-500 text-white px-2.5 py-1.5 rounded-md transition-colors font-medium"
+                                        className="flex items-center gap-1 text-xs bg-zinc-700 hover:bg-zinc-600 text-white px-2.5 py-1.5 rounded-md transition-colors font-medium"
                                       >
                                         <ExternalLink size={12} />
                                         {t("adminSendWhatsApp")}
