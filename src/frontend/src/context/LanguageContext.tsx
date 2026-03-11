@@ -16,6 +16,7 @@ const translations: Record<string, Record<Language, string>> = {
   navContact: { en: "Contact", ml: "ബന്ധപ്പെടുക" },
   navRegister: { en: "Register", ml: "രജിസ്റ്റർ" },
   navToken: { en: "Token", ml: "ടോക്കൺ" },
+  navGallery: { en: "Gallery", ml: "ഗ്യാലറി" },
   langToggle: { en: "മലയാളം", ml: "English" },
 
   // Hero
@@ -220,6 +221,11 @@ const translations: Record<string, Record<Language, string>> = {
     en: "No tokens booked yet.",
     ml: "ഇനിയും ടോക്കണുകൾ ബുക്ക് ചെയ്തിട്ടില്ല.",
   },
+  adminGallery: { en: "Gallery", ml: "ഗ്യാലറി" },
+  adminGalleryEmpty: {
+    en: "No gallery items yet.",
+    ml: "ഇനിയും ഗ്യാലറി ഇനങ്ങൾ ഇല്ല.",
+  },
   notificationPanelTitle: { en: "Temple Notifications", ml: "ക്ഷേത്ര അറിയിപ്പുകൾ" },
   noNotifications: { en: "No notifications yet.", ml: "ഇനിയും അറിയിപ്പുകൾ ഇല്ല." },
 
@@ -231,6 +237,42 @@ const translations: Record<string, Record<Language, string>> = {
   tokenSubtitle: {
     en: "Reserve your token before visiting the temple",
     ml: "ക്ഷേത്രം സന്ദർശിക്കുന്നതിന് മുൻപ് ടോക്കൺ ബുക്ക് ചെയ്യൂ",
+  },
+  tokenSelectDate: {
+    en: "Select a Saturday",
+    ml: "ഒരു ശനിയാഴ്ച തിരഞ്ഞെടുക്കൂ",
+  },
+  tokenSaturdayOnly: {
+    en: "Tokens are available on Saturdays only, from 6:00 PM onwards",
+    ml: "ശനിയാഴ്ചകളിൽ മാത്രം, വൈകിട്ട് 6:00 മണി മുതൽ ടോക്കണുകൾ ലഭ്യം",
+  },
+  tokenAvailability: {
+    en: "Token Availability",
+    ml: "ടോക്കൺ ലഭ്യത",
+  },
+  tokenNumbers: {
+    en: "Tokens",
+    ml: "ടോക്കണുകൾ",
+  },
+  tokenFromEvening: {
+    en: "Available from 6:00 PM at the temple",
+    ml: "ക്ഷേത്രത്തിൽ വൈകിട്ട് 6:00 മണി മുതൽ ലഭ്യം",
+  },
+  tokenContinue: {
+    en: "Continue to Book",
+    ml: "ബുക്ക് ചെയ്യാൻ തുടരൂ",
+  },
+  tokenChange: {
+    en: "Change date",
+    ml: "തീയതി മാറ്റൂ",
+  },
+  tokenSlot6PM: {
+    en: "Please be at the temple by 6:00 PM",
+    ml: "വൈകിട്ട് 6:00 മണിക്ക് ക്ഷേത്രത്തിൽ എത്തൂ",
+  },
+  tokenShowAtOffice: {
+    en: "Show this token number at the temple office when you arrive",
+    ml: "എത്തുമ്പോൾ ക്ഷേത്ര ഓഫീസിൽ ഈ ടോക്കൺ നമ്പർ കാണിക്കൂ",
   },
   tokenName: { en: "Your Name", ml: "നിങ്ങളുടെ പേര്" },
   tokenPhone: { en: "WhatsApp Number", ml: "WhatsApp നമ്പർ" },
@@ -247,6 +289,15 @@ const translations: Record<string, Record<Language, string>> = {
   tokenError: {
     en: "Unable to book token. Please try again.",
     ml: "ടോക്കൺ ബുക്ക് ചെയ്യാൻ കഴിഞ്ഞില്ല.",
+  },
+
+  // Gallery
+  galleryTitle: { en: "Temple Gallery", ml: "ക്ഷേത്ര ഗ്യാലറി" },
+  galleryUpload: { en: "Upload Photo/Video", ml: "ഫോട്ടോ/വീഡിയോ അപ്‌ലോഡ് ചെയ്യുക" },
+  galleryCaption: { en: "Caption (optional)", ml: "അടിക്കുറിപ്പ് (ഐച്ഛിക)" },
+  galleryEmpty: {
+    en: "No photos or videos yet",
+    ml: "ഇതുവരെ ഫോട്ടോകളോ വീഡിയോകളോ ഇല്ല",
   },
 };
 

@@ -1,18 +1,40 @@
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { useLanguage } from "@/context/LanguageContext";
 import { useActor } from "@/hooks/useActor";
-import { Loader2, MessageCircle, RotateCcw, Ticket, X } from "lucide-react";
+import {
+  Building2,
+  CalendarDays,
+  Clock,
+  Loader2,
+  MessageCircle,
+  RotateCcw,
+  Ticket,
+  X,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
+import type { DayPickerSingleProps } from "react-day-picker";
 
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
-/** Extends the base actor with token methods added in the latest backend build. */
 interface ActorWithTokens {
   bookToken(name: string, phoneNumber: string): Promise<bigint>;
+}
+
+/** Returns true if the given date is a Saturday */
+function isSaturday(date: Date): boolean {
+  return date.getDay() === 6;
+}
+
+/** Returns true if the date is today or in the future */
+function isFutureOrToday(date: Date): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date >= today;
 }
 
 export default function TokenModal({ open, onClose }: Props) {
@@ -20,11 +42,24 @@ export default function TokenModal({ open, onClose }: Props) {
   const { actor, isFetching } = useActor();
   const tokenActor = actor as unknown as ActorWithTokens | null;
 
+  const [step, setStep] = useState<"calendar" | "form">("calendar");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [tokenNumber, setTokenNumber] = useState<number | null>(null);
+
+  const handleDateSelect: DayPickerSingleProps["onSelect"] = (date) => {
+    if (!date) return;
+    setSelectedDate(date);
+  };
+
+  const handleProceedToForm = () => {
+    if (!selectedDate) return;
+    setStep("form");
+  };
 
   const handleSubmit = async () => {
     if (!name.trim() || !phone.trim()) {
@@ -49,6 +84,8 @@ export default function TokenModal({ open, onClose }: Props) {
     setPhone("");
     setError("");
     setTokenNumber(null);
+    setSelectedDate(undefined);
+    setStep("calendar");
   };
 
   const handleClose = () => {
@@ -56,10 +93,24 @@ export default function TokenModal({ open, onClose }: Props) {
     setTimeout(handleReset, 300);
   };
 
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString("en-IN", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
   const whatsappUrl =
     tokenNumber !== null
-      ? `https://wa.me/${phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Your temple token number is ${tokenNumber}. Please keep this number handy when visiting Pallikudath Vishnumaya Temple.`)}`
+      ? `https://wa.me/${phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
+          `Your temple token number is ${tokenNumber}. Please come on ${selectedDate ? formatDate(selectedDate) : "the selected date"} from 6:00 PM onwards. Show this token number at the temple office. Pallikudath Vishnumaya Temple.`,
+        )}`
       : "";
+
+  // Disable all non-Saturdays and past dates
+  const disabledDays = (date: Date) =>
+    !isSaturday(date) || !isFutureOrToday(date);
 
   return (
     <AnimatePresence>
@@ -105,81 +156,162 @@ export default function TokenModal({ open, onClose }: Props) {
                 </button>
               </div>
 
-              <div className="px-6 py-6">
+              <div className="px-6 py-6 overflow-y-auto max-h-[75vh]">
                 {tokenNumber === null ? (
-                  /* Booking form */
-                  <div className="flex flex-col gap-5">
-                    <p className="text-gray-400 text-sm text-center">
-                      {t("tokenSubtitle")}
-                    </p>
+                  step === "calendar" ? (
+                    /* Step 1: Date selection */
+                    <div className="flex flex-col gap-5">
+                      <div className="text-center">
+                        <div className="inline-flex items-center gap-2 text-temple-gold font-semibold text-sm mb-1">
+                          <CalendarDays size={15} />
+                          {t("tokenSelectDate")}
+                        </div>
+                        <p className="text-gray-400 text-xs">
+                          {t("tokenSaturdayOnly")}
+                        </p>
+                      </div>
 
-                    {/* Name */}
-                    <div className="flex flex-col gap-1.5">
-                      <label
-                        htmlFor="token-name"
-                        className="text-temple-gold text-sm font-medium"
-                      >
-                        {t("tokenName")}
-                      </label>
-                      <input
-                        id="token-name"
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        data-ocid="token.name.input"
-                        placeholder={t("tokenName")}
-                        className="w-full bg-zinc-900 border border-zinc-700 focus:border-temple-gold text-white px-4 py-2.5 rounded-lg outline-none transition-colors text-sm"
-                      />
-                    </div>
+                      {/* Time info */}
+                      <div className="bg-zinc-900/80 border border-temple-gold/20 rounded-xl px-4 py-3 flex items-center gap-3">
+                        <Clock
+                          size={15}
+                          className="text-temple-gold shrink-0"
+                        />
+                        <p className="text-gray-300 text-sm">
+                          {t("tokenFromEvening")}
+                        </p>
+                      </div>
 
-                    {/* Phone */}
-                    <div className="flex flex-col gap-1.5">
-                      <label
-                        htmlFor="token-phone"
-                        className="text-temple-gold text-sm font-medium"
-                      >
-                        {t("tokenPhone")}
-                      </label>
-                      <input
-                        id="token-phone"
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                        data-ocid="token.phone.input"
-                        placeholder={t("tokenPhonePlaceholder")}
-                        className="w-full bg-zinc-900 border border-zinc-700 focus:border-temple-gold text-white px-4 py-2.5 rounded-lg outline-none transition-colors text-sm"
-                      />
-                    </div>
+                      {/* Calendar */}
+                      <div className="flex justify-center">
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={handleDateSelect}
+                          disabled={disabledDays}
+                          data-ocid="token.calendar"
+                          className="rounded-xl border border-temple-gold/20 bg-zinc-900 text-white [&_.rdp-day_button:hover]:bg-temple-gold/20 [&_.rdp-day_button.rdp-day_selected]:bg-temple-gold [&_.rdp-day_button.rdp-day_selected]:text-black"
+                        />
+                      </div>
 
-                    {error && (
-                      <p
-                        data-ocid="token.error_state"
-                        className="text-red-400 text-xs"
-                      >
-                        {error}
-                      </p>
-                    )}
-
-                    <Button
-                      onClick={handleSubmit}
-                      disabled={loading || isFetching || !tokenActor}
-                      data-ocid="token.submit_button"
-                      className="bg-temple-gold text-black hover:bg-temple-gold/80 font-semibold w-full flex items-center gap-2"
-                    >
-                      {loading || isFetching ? (
-                        <>
-                          <Loader2 size={16} className="animate-spin" />
-                          {loading ? t("tokenSubmitting") : "Connecting..."}
-                        </>
-                      ) : (
-                        <>
-                          <Ticket size={16} />
-                          {t("tokenSubmit")}
-                        </>
+                      {selectedDate && (
+                        <div className="bg-temple-gold/10 border border-temple-gold/30 rounded-lg px-4 py-2.5 text-center">
+                          <p className="text-temple-gold text-sm font-semibold">
+                            {formatDate(selectedDate)}
+                          </p>
+                        </div>
                       )}
-                    </Button>
-                  </div>
+
+                      <Button
+                        onClick={handleProceedToForm}
+                        disabled={!selectedDate}
+                        data-ocid="token.primary_button"
+                        className="bg-temple-gold text-black hover:bg-temple-gold/80 font-semibold w-full flex items-center gap-2 disabled:opacity-40"
+                      >
+                        <Ticket size={16} />
+                        {t("tokenContinue")}
+                      </Button>
+                    </div>
+                  ) : (
+                    /* Step 2: Booking form */
+                    <div className="flex flex-col gap-5">
+                      {/* Selected date reminder */}
+                      {selectedDate && (
+                        <div className="flex items-center gap-2 bg-temple-gold/10 border border-temple-gold/30 rounded-lg px-4 py-2.5">
+                          <CalendarDays
+                            size={14}
+                            className="text-temple-gold shrink-0"
+                          />
+                          <div>
+                            <p className="text-temple-gold text-xs font-semibold">
+                              {formatDate(selectedDate)}
+                            </p>
+                            <p className="text-gray-400 text-xs">
+                              {t("tokenFromEvening")}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setStep("calendar")}
+                            className="ml-auto text-gray-400 hover:text-temple-gold text-xs underline transition-colors"
+                          >
+                            {t("tokenChange")}
+                          </button>
+                        </div>
+                      )}
+
+                      <p className="text-gray-400 text-sm text-center">
+                        {t("tokenSubtitle")}
+                      </p>
+
+                      {/* Name */}
+                      <div className="flex flex-col gap-1.5">
+                        <label
+                          htmlFor="token-name"
+                          className="text-temple-gold text-sm font-medium"
+                        >
+                          {t("tokenName")}
+                        </label>
+                        <input
+                          id="token-name"
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          data-ocid="token.name.input"
+                          placeholder={t("tokenName")}
+                          className="w-full bg-zinc-900 border border-zinc-700 focus:border-temple-gold text-white px-4 py-2.5 rounded-lg outline-none transition-colors text-sm"
+                        />
+                      </div>
+
+                      {/* Phone */}
+                      <div className="flex flex-col gap-1.5">
+                        <label
+                          htmlFor="token-phone"
+                          className="text-temple-gold text-sm font-medium"
+                        >
+                          {t("tokenPhone")}
+                        </label>
+                        <input
+                          id="token-phone"
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                          data-ocid="token.phone.input"
+                          placeholder={t("tokenPhonePlaceholder")}
+                          className="w-full bg-zinc-900 border border-zinc-700 focus:border-temple-gold text-white px-4 py-2.5 rounded-lg outline-none transition-colors text-sm"
+                        />
+                      </div>
+
+                      {error && (
+                        <p
+                          data-ocid="token.error_state"
+                          className="text-red-400 text-xs"
+                        >
+                          {error}
+                        </p>
+                      )}
+
+                      <Button
+                        onClick={handleSubmit}
+                        disabled={loading || isFetching || !tokenActor}
+                        data-ocid="token.submit_button"
+                        className="bg-temple-gold text-black hover:bg-temple-gold/80 font-semibold w-full flex items-center gap-2"
+                      >
+                        {loading || isFetching ? (
+                          <>
+                            <Loader2 size={16} className="animate-spin" />
+                            {loading ? t("tokenSubmitting") : "Connecting..."}
+                          </>
+                        ) : (
+                          <>
+                            <Ticket size={16} />
+                            {t("tokenSubmit")}
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )
                 ) : (
                   /* Success screen */
                   <div className="flex flex-col items-center gap-6 py-4">
@@ -201,8 +333,27 @@ export default function TokenModal({ open, onClose }: Props) {
                           {tokenNumber}
                         </span>
                       </motion.div>
-                      <p className="text-gray-500 text-xs mt-3">
+                      {selectedDate && (
+                        <p className="text-temple-gold/80 text-xs mt-3 font-medium">
+                          {formatDate(selectedDate)}
+                        </p>
+                      )}
+                      <p className="text-gray-400 text-xs mt-1">
+                        {t("tokenSlot6PM")}
+                      </p>
+                      <p className="text-gray-500 text-xs mt-2">
                         🪔 Pallikudath Vishnumaya Temple
+                      </p>
+                    </div>
+
+                    {/* Temple office notice */}
+                    <div className="w-full flex items-center gap-3 bg-temple-gold/10 border border-temple-gold/40 rounded-xl px-4 py-3">
+                      <Building2
+                        size={20}
+                        className="text-temple-gold shrink-0"
+                      />
+                      <p className="text-temple-gold text-sm font-semibold">
+                        {t("tokenShowAtOffice")}
                       </p>
                     </div>
 

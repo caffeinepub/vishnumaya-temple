@@ -8,6 +8,17 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const _CaffeineStorageCreateCertificateResult = IDL.Record({
+  'method' : IDL.Text,
+  'blob_hash' : IDL.Text,
+});
+export const _CaffeineStorageRefillInformation = IDL.Record({
+  'proposed_top_up_amount' : IDL.Opt(IDL.Nat),
+});
+export const _CaffeineStorageRefillResult = IDL.Record({
+  'success' : IDL.Opt(IDL.Bool),
+  'topped_up_amount' : IDL.Opt(IDL.Nat),
+});
 export const Time = IDL.Int;
 export const Booking = IDL.Record({
   'status' : IDL.Text,
@@ -28,6 +39,21 @@ export const Pooja = IDL.Record({
   'poojaId' : IDL.Nat,
   'nameMalayalam' : IDL.Text,
 });
+export const Token = IDL.Record({
+  'bookedAt' : Time,
+  'tokenNumber' : IDL.Nat,
+  'name' : IDL.Text,
+  'phoneNumber' : IDL.Text,
+});
+export const GalleryItem = IDL.Record({
+  'id' : IDL.Nat,
+  'uploaderName' : IDL.Text,
+  'caption' : IDL.Text,
+  'blobId' : IDL.Text,
+  'mediaType' : IDL.Text,
+  'uploadedAt' : Time,
+  'uploaderPhone' : IDL.Text,
+});
 export const Notification = IDL.Record({
   'id' : IDL.Nat,
   'message' : IDL.Text,
@@ -40,10 +66,46 @@ export const User = IDL.Record({
 });
 
 export const idlService = IDL.Service({
+  '_caffeineStorageBlobIsLive' : IDL.Func(
+      [IDL.Vec(IDL.Nat8)],
+      [IDL.Bool],
+      ['query'],
+    ),
+  '_caffeineStorageBlobsToDelete' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Vec(IDL.Nat8))],
+      ['query'],
+    ),
+  '_caffeineStorageConfirmBlobDeletion' : IDL.Func(
+      [IDL.Vec(IDL.Vec(IDL.Nat8))],
+      [],
+      [],
+    ),
+  '_caffeineStorageCreateCertificate' : IDL.Func(
+      [IDL.Text],
+      [_CaffeineStorageCreateCertificateResult],
+      [],
+    ),
+  '_caffeineStorageRefillCashier' : IDL.Func(
+      [IDL.Opt(_CaffeineStorageRefillInformation)],
+      [_CaffeineStorageRefillResult],
+      [],
+    ),
+  '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
+  'addGalleryItem' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
+  'bookToken' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
+  'deleteGalleryItem' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Bool], []),
   'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
   'getAllPoojas' : IDL.Func([], [IDL.Vec(Pooja)], ['query']),
+  'getAllTokens' : IDL.Func([], [IDL.Vec(Token)], ['query']),
+  'getGalleryItems' : IDL.Func([], [IDL.Vec(GalleryItem)], ['query']),
   'getNotifications' : IDL.Func([], [IDL.Vec(Notification)], ['query']),
   'getOptedInUsers' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
+  'getTokenByPhone' : IDL.Func([IDL.Text], [IDL.Opt(Token)], ['query']),
   'getUser' : IDL.Func([IDL.Text], [IDL.Opt(User)], ['query']),
   'getUserNotificationPreference' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
   'isRegistered' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
@@ -62,6 +124,17 @@ export const idlService = IDL.Service({
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const _CaffeineStorageCreateCertificateResult = IDL.Record({
+    'method' : IDL.Text,
+    'blob_hash' : IDL.Text,
+  });
+  const _CaffeineStorageRefillInformation = IDL.Record({
+    'proposed_top_up_amount' : IDL.Opt(IDL.Nat),
+  });
+  const _CaffeineStorageRefillResult = IDL.Record({
+    'success' : IDL.Opt(IDL.Bool),
+    'topped_up_amount' : IDL.Opt(IDL.Nat),
+  });
   const Time = IDL.Int;
   const Booking = IDL.Record({
     'status' : IDL.Text,
@@ -82,6 +155,21 @@ export const idlFactory = ({ IDL }) => {
     'poojaId' : IDL.Nat,
     'nameMalayalam' : IDL.Text,
   });
+  const Token = IDL.Record({
+    'bookedAt' : Time,
+    'tokenNumber' : IDL.Nat,
+    'name' : IDL.Text,
+    'phoneNumber' : IDL.Text,
+  });
+  const GalleryItem = IDL.Record({
+    'id' : IDL.Nat,
+    'uploaderName' : IDL.Text,
+    'caption' : IDL.Text,
+    'blobId' : IDL.Text,
+    'mediaType' : IDL.Text,
+    'uploadedAt' : Time,
+    'uploaderPhone' : IDL.Text,
+  });
   const Notification = IDL.Record({
     'id' : IDL.Nat,
     'message' : IDL.Text,
@@ -94,10 +182,46 @@ export const idlFactory = ({ IDL }) => {
   });
   
   return IDL.Service({
+    '_caffeineStorageBlobIsLive' : IDL.Func(
+        [IDL.Vec(IDL.Nat8)],
+        [IDL.Bool],
+        ['query'],
+      ),
+    '_caffeineStorageBlobsToDelete' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Vec(IDL.Nat8))],
+        ['query'],
+      ),
+    '_caffeineStorageConfirmBlobDeletion' : IDL.Func(
+        [IDL.Vec(IDL.Vec(IDL.Nat8))],
+        [],
+        [],
+      ),
+    '_caffeineStorageCreateCertificate' : IDL.Func(
+        [IDL.Text],
+        [_CaffeineStorageCreateCertificateResult],
+        [],
+      ),
+    '_caffeineStorageRefillCashier' : IDL.Func(
+        [IDL.Opt(_CaffeineStorageRefillInformation)],
+        [_CaffeineStorageRefillResult],
+        [],
+      ),
+    '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
+    'addGalleryItem' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
+    'bookToken' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
+    'deleteGalleryItem' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Bool], []),
     'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
     'getAllPoojas' : IDL.Func([], [IDL.Vec(Pooja)], ['query']),
+    'getAllTokens' : IDL.Func([], [IDL.Vec(Token)], ['query']),
+    'getGalleryItems' : IDL.Func([], [IDL.Vec(GalleryItem)], ['query']),
     'getNotifications' : IDL.Func([], [IDL.Vec(Notification)], ['query']),
     'getOptedInUsers' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
+    'getTokenByPhone' : IDL.Func([IDL.Text], [IDL.Opt(Token)], ['query']),
     'getUser' : IDL.Func([IDL.Text], [IDL.Opt(User)], ['query']),
     'getUserNotificationPreference' : IDL.Func(
         [IDL.Text],

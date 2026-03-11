@@ -19,6 +19,15 @@ export interface Booking {
   'phoneNumber' : string,
   'devoteeName' : string,
 }
+export interface GalleryItem {
+  'id' : bigint,
+  'uploaderName' : string,
+  'caption' : string,
+  'blobId' : string,
+  'mediaType' : string,
+  'uploadedAt' : Time,
+  'uploaderPhone' : string,
+}
 export interface Notification {
   'id' : bigint,
   'message' : string,
@@ -35,22 +44,57 @@ export interface Pooja {
   'nameMalayalam' : string,
 }
 export type Time = bigint;
+export interface Token {
+  'bookedAt' : Time,
+  'tokenNumber' : bigint,
+  'name' : string,
+  'phoneNumber' : string,
+}
 export interface User {
   'name' : string,
   'phoneNumber' : string,
   'registeredAt' : Time,
 }
-export interface Token {
-  'tokenNumber' : bigint,
-  'name' : string,
-  'phoneNumber' : string,
-  'bookedAt' : Time,
+export interface _CaffeineStorageCreateCertificateResult {
+  'method' : string,
+  'blob_hash' : string,
+}
+export interface _CaffeineStorageRefillInformation {
+  'proposed_top_up_amount' : [] | [bigint],
+}
+export interface _CaffeineStorageRefillResult {
+  'success' : [] | [boolean],
+  'topped_up_amount' : [] | [bigint],
 }
 export interface _SERVICE {
+  '_caffeineStorageBlobIsLive' : ActorMethod<[Uint8Array], boolean>,
+  '_caffeineStorageBlobsToDelete' : ActorMethod<[], Array<Uint8Array>>,
+  '_caffeineStorageConfirmBlobDeletion' : ActorMethod<
+    [Array<Uint8Array>],
+    undefined
+  >,
+  '_caffeineStorageCreateCertificate' : ActorMethod<
+    [string],
+    _CaffeineStorageCreateCertificateResult
+  >,
+  '_caffeineStorageRefillCashier' : ActorMethod<
+    [[] | [_CaffeineStorageRefillInformation]],
+    _CaffeineStorageRefillResult
+  >,
+  '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
+  'addGalleryItem' : ActorMethod<
+    [string, string, string, string, string],
+    bigint
+  >,
+  'bookToken' : ActorMethod<[string, string], bigint>,
+  'deleteGalleryItem' : ActorMethod<[bigint, string], boolean>,
   'getAllBookings' : ActorMethod<[], Array<Booking>>,
   'getAllPoojas' : ActorMethod<[], Array<Pooja>>,
+  'getAllTokens' : ActorMethod<[], Array<Token>>,
+  'getGalleryItems' : ActorMethod<[], Array<GalleryItem>>,
   'getNotifications' : ActorMethod<[], Array<Notification>>,
   'getOptedInUsers' : ActorMethod<[], Array<string>>,
+  'getTokenByPhone' : ActorMethod<[string], [] | [Token]>,
   'getUser' : ActorMethod<[string], [] | [User]>,
   'getUserNotificationPreference' : ActorMethod<[string], boolean>,
   'isRegistered' : ActorMethod<[string], boolean>,
@@ -60,9 +104,6 @@ export interface _SERVICE {
   'submitBooking' : ActorMethod<[string, string, bigint, string], bigint>,
   'updateBookingStatus' : ActorMethod<[bigint, string], undefined>,
   'verifyOTP' : ActorMethod<[string, string], boolean>,
-  'bookToken' : ActorMethod<[string, string], bigint>,
-  'getAllTokens' : ActorMethod<[], Array<Token>>,
-  'getTokenByPhone' : ActorMethod<[string], [] | [Token]>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

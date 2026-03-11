@@ -3,6 +3,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { Clock, ExternalLink, MapPin, Phone } from "lucide-react";
 import { motion } from "motion/react";
 
+const MAPS_URL = "https://maps.app.goo.gl/UGXtnF6utBpYkeEM9";
+
 export default function ContactSection() {
   const { t } = useLanguage();
 
@@ -40,16 +42,21 @@ export default function ContactSection() {
         </motion.div>
 
         <div className="grid sm:grid-cols-3 gap-6">
-          {/* Address */}
-          <motion.div
+          {/* Address -- clickable, opens Google Maps */}
+          <motion.a
+            href={MAPS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-ocid="contact.address.link"
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1, duration: 0.5 }}
-            className="rounded-xl p-6 text-center"
+            className="rounded-xl p-6 text-center block cursor-pointer transition-all hover:scale-105"
             style={{
               background: "oklch(0.98 0.005 80 / 0.08)",
-              border: "1px solid oklch(0.82 0.15 85 / 0.2)",
+              border: "1px solid oklch(0.82 0.15 85 / 0.4)",
+              textDecoration: "none",
             }}
           >
             <MapPin
@@ -64,12 +71,19 @@ export default function ContactSection() {
               {t("address")}
             </h3>
             <p
-              className="font-body text-sm"
+              className="font-body text-sm mb-2"
               style={{ color: "oklch(0.82 0.03 70)" }}
             >
               {t("addressText")}
             </p>
-          </motion.div>
+            <span
+              className="font-body text-xs inline-flex items-center gap-1"
+              style={{ color: "oklch(0.82 0.15 85)" }}
+            >
+              <ExternalLink size={12} />
+              Open in Maps
+            </span>
+          </motion.a>
 
           {/* Phone */}
           <motion.div
@@ -159,9 +173,10 @@ export default function ContactSection() {
             }}
           >
             <a
-              href="https://maps.google.com"
+              href={MAPS_URL}
               target="_blank"
               rel="noopener noreferrer"
+              data-ocid="contact.directions.button"
             >
               <ExternalLink size={16} className="mr-2" />
               {t("getDirections")}

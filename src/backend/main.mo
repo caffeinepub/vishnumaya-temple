@@ -7,9 +7,13 @@ import Nat "mo:core/Nat";
 import Int "mo:core/Int";
 import Runtime "mo:core/Runtime";
 
+import MixinStorage "blob-storage/Mixin";
+import Storage "blob-storage/Storage";
 
 
 actor {
+  include MixinStorage();
+
   type Pooja = {
     poojaId : Nat;
     nameEnglish : Text;
@@ -76,9 +80,20 @@ actor {
     bookedAt : Time.Time;
   };
 
+  type GalleryItem = {
+    id : Nat;
+    uploaderName : Text;
+    uploaderPhone : Text;
+    blobId : Text;
+    mediaType : Text; // "image" or "video"
+    caption : Text;
+    uploadedAt : Time.Time;
+  };
+
   var nextBookingId = 1;
   var nextNotificationId = 1;
   var nextTokenNumber = 101;
+  var nextGalleryId = 1;
   let poojas = Map.empty<Nat, Pooja>();
   let bookings = Map.empty<Nat, Booking>();
   let users = Map.empty<Text, User>();
@@ -86,6 +101,7 @@ actor {
   let notifications = Map.empty<Nat, Notification>();
   let notificationPreferences = Map.empty<Text, Bool>();
   let tokens = Map.empty<Nat, Token>();
+  let galleryItems = Map.empty<Nat, GalleryItem>();
 
   // Generate a 6-digit OTP from current time
   func generateOTP(_phone : Text) : Text {
@@ -307,5 +323,43 @@ actor {
         };
       }
     );
+  };
+
+  // Gallery functions
+  public shared ({ caller }) func addGalleryItem(
+    uploaderName : Text,
+    uploaderPhone : Text,
+    blobId : Text,
+    mediaType : Text,
+    caption : Text
+  ) : async Nat {
+    let galleryItem : GalleryItem = {
+      id = nextGalleryId;
+      uploaderName;
+      uploaderPhone;
+      blobId;
+      mediaType;
+      caption;
+      uploadedAt = Time.now();
+    };
+    galleryItems.add(nextGalleryId, galleryItem);
+    nextGalleryId += 1;
+    galleryItem.id;
+  };
+
+  public query ({ caller }) func getGalleryItems() : async [GalleryItem] {
+    galleryItems.values().toArray();
+  };
+
+  public shared ({ caller }) func deleteGalleryItem(id : Nat, adminPassword : Text) : async Bool {
+    if (adminPassword != "temple2026") {
+      Runtime.trap("Invalid admin password");
+    };
+    if (galleryItems.containsKey(id)) {
+      galleryItems.remove(id);
+      true;
+    } else {
+      false;
+    };
   };
 };

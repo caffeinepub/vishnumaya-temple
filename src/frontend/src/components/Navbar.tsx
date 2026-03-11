@@ -1,10 +1,11 @@
+import GalleryModal from "@/components/GalleryModal";
 import NotificationPanel from "@/components/NotificationPanel";
 import RegisterModal from "@/components/RegisterModal";
 import TokenModal from "@/components/TokenModal";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/context/LanguageContext";
 import { useUser } from "@/context/UserContext";
-import { Bell, BellOff, Menu, Ticket, X } from "lucide-react";
+import { Bell, BellOff, Images, Menu, Ticket, X } from "lucide-react";
 import { useState } from "react";
 
 const navItems = [
@@ -28,6 +29,7 @@ export default function Navbar() {
   const [registerOpen, setRegisterOpen] = useState(false);
   const [notifPanelOpen, setNotifPanelOpen] = useState(false);
   const [tokenOpen, setTokenOpen] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
   const displayName = user
     ? user.name.length > 12
@@ -68,6 +70,19 @@ export default function Navbar() {
                   {t(item.key)}
                 </a>
               ))}
+
+              {/* Gallery button */}
+              <button
+                type="button"
+                data-ocid="nav.gallery.open_modal_button"
+                onClick={() => setGalleryOpen(true)}
+                title={t("navGallery")}
+                aria-label={t("navGallery")}
+                className="flex items-center gap-1.5 text-temple-gold hover:bg-temple-gold/10 border border-temple-gold/50 rounded-md px-2.5 py-1 transition-colors text-sm font-body"
+              >
+                <Images size={15} />
+                {t("navGallery")}
+              </button>
 
               {/* Token button */}
               <button
@@ -168,6 +183,18 @@ export default function Navbar() {
 
             {/* Mobile controls */}
             <div className="flex lg:hidden items-center gap-2">
+              {/* Gallery button mobile */}
+              <button
+                type="button"
+                data-ocid="nav.gallery.open_modal_button"
+                onClick={() => setGalleryOpen(true)}
+                title={t("navGallery")}
+                aria-label={t("navGallery")}
+                className="flex items-center justify-center w-8 h-8 rounded-full text-temple-gold hover:bg-temple-gold/10 transition-colors"
+              >
+                <Images size={18} />
+              </button>
+
               {/* Token button mobile */}
               <button
                 type="button"
@@ -294,6 +321,8 @@ export default function Navbar() {
       />
 
       <TokenModal open={tokenOpen} onClose={() => setTokenOpen(false)} />
+
+      <GalleryModal open={galleryOpen} onClose={() => setGalleryOpen(false)} />
     </>
   );
 }
