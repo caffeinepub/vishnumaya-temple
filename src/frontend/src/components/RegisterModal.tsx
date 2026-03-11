@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/context/LanguageContext";
 import { useUser } from "@/context/UserContext";
 import { useActor } from "@/hooks/useActor";
-import { CheckCircle, MessageCircle, Phone } from "lucide-react";
+import { CheckCircle, Eye, EyeOff, Phone } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -18,57 +18,105 @@ interface Props {
   onClose: () => void;
 }
 
-type Step = "form" | "otp" | "success";
+type Tab = "register" | "signin";
+type Step = "form" | "success";
+
+const PASSWORDS_KEY = "temple_passwords";
+
+function getStoredPasswords(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(PASSWORDS_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function savePassword(phone: string, password: string) {
+  const passwords = getStoredPasswords();
+  passwords[phone] = password;
+  localStorage.setItem(PASSWORDS_KEY, JSON.stringify(passwords));
+}
 
 export default function RegisterModal({ open, onClose }: Props) {
   const { t } = useLanguage();
   const { actor } = useActor();
   const { setUser } = useUser();
-  const [step, setStep] = useState<Step>("form");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [generatedOtp, setGeneratedOtp] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [whatsappOpened, setWhatsappOpened] = useState(false);
 
-  const handleReset = () => {
+  const [tab, setTab] = useState<Tab>("register");
+  const [step, setStep] = useState<Step>("form");
+  const [loading, setLoading] = useState(false);
+
+  // Register fields
+  const [regName, setRegName] = useState("");
+  const [regPhone, setRegPhone] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regConfirm, setRegConfirm] = useState("");
+  const [showRegPwd, setShowRegPwd] = useState(false);
+  const [showRegConfirm, setShowRegConfirm] = useState(false);
+
+  // Sign in fields
+  const [signPhone, setSignPhone] = useState("");
+  const [signPassword, setSignPassword] = useState("");
+  const [showSignPwd, setShowSignPwd] = useState(false);
+
+  const resetAll = () => {
+    setTab("register");
     setStep("form");
-    setName("");
-    setPhone("");
-    setOtp("");
-    setGeneratedOtp("");
-    setWhatsappOpened(false);
+    setRegName("");
+    setRegPhone("");
+    setRegPassword("");
+    setRegConfirm("");
+    setShowRegPwd(false);
+    setShowRegConfirm(false);
+    setSignPhone("");
+    setSignPassword("");
+    setShowSignPwd(false);
   };
 
   const handleClose = () => {
-    handleReset();
+    resetAll();
     onClose();
   };
 
-  const handleRequestOTP = async () => {
-    if (!name.trim() || !phone.trim()) {
-      toast.error(t("registerFillAll"));
+  const validatePhone = (p: string) =>
+    /^[0-9]{10,15}$/.test(p.replace(/[\s+\-]/g, ""));
+
+  // ---- Register ----
+  const handleRegister = async () => {
+    if (!regName.trim() || !regPhone.trim() || !regPassword || !regConfirm) {
+      toast.error("Please fill in all fields.");
       return;
     }
-    if (!/^[0-9]{10,15}$/.test(phone.replace(/[\s+\-]/g, ""))) {
+    if (!validatePhone(regPhone)) {
       toast.error(t("registerInvalidPhone"));
+      return;
+    }
+    if (regPassword.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    if (regPassword !== regConfirm) {
+      toast.error("Passwords do not match.");
       return;
     }
     if (!actor) {
       toast.error(t("registerError"));
       return;
     }
+
     setLoading(true);
     try {
-      const isReg = await actor.isRegistered(phone.trim());
+      const isReg = await actor.isRegistered(regPhone.trim());
       if (isReg) {
         toast.error(t("registerAlreadyRegistered"));
         return;
       }
-      const code = await actor.requestOTP(phone.trim(), name.trim());
-      setGeneratedOtp(code);
-      setStep("otp");
+      // Use OTP flow silently to persist user in backend
+      const code = await actor.requestOTP(regPhone.trim(), regName.trim());
+      await actor.verifyOTP(regPhone.trim(), code);
+      savePassword(regPhone.trim(), regPassword);
+      setUser({ phone: regPhone.trim(), name: regName.trim() });
+      setStep("success");
     } catch {
       toast.error(t("registerError"));
     } finally {
@@ -76,35 +124,42 @@ export default function RegisterModal({ open, onClose }: Props) {
     }
   };
 
-  const handleOpenWhatsApp = () => {
-    const cleanPhone = phone.replace(/[\s+\-]/g, "");
-    const message = encodeURIComponent(
-      `Your OTP for Pallikudath Vishnumaya Temple registration is: ${generatedOtp}\n\nPlease enter this code to complete your registration.`,
-    );
-    const waUrl = `https://wa.me/${cleanPhone}?text=${message}`;
-    window.open(waUrl, "_blank");
-    setWhatsappOpened(true);
-    toast.success("WhatsApp opened — check your messages for the OTP.");
-  };
-
-  const handleVerifyOTP = async () => {
-    if (!otp.trim()) {
-      toast.error(t("registerEnterOTP"));
+  // ---- Sign In ----
+  const handleSignIn = async () => {
+    if (!signPhone.trim() || !signPassword) {
+      toast.error("Please enter your mobile number and password.");
+      return;
+    }
+    if (!validatePhone(signPhone)) {
+      toast.error(t("registerInvalidPhone"));
       return;
     }
     if (!actor) {
       toast.error(t("registerError"));
       return;
     }
+
     setLoading(true);
     try {
-      const success = await actor.verifyOTP(phone.trim(), otp.trim());
-      if (success) {
-        setUser({ phone: phone.trim(), name: name.trim() });
-        setStep("success");
-      } else {
-        toast.error(t("registerInvalidOTP"));
+      const isReg = await actor.isRegistered(signPhone.trim());
+      if (!isReg) {
+        toast.error(
+          "No account found with this number. Please register first.",
+        );
+        return;
       }
+      const passwords = getStoredPasswords();
+      if (passwords[signPhone.trim()] !== signPassword) {
+        toast.error("Incorrect password. Please try again.");
+        return;
+      }
+      const userData = await actor.getUser(signPhone.trim());
+      const userName =
+        Array.isArray(userData) && userData.length > 0
+          ? (userData[0] as { name: string }).name
+          : signPhone.trim();
+      setUser({ phone: signPhone.trim(), name: userName });
+      setStep("success");
     } catch {
       toast.error(t("registerError"));
     } finally {
@@ -121,125 +176,225 @@ export default function RegisterModal({ open, onClose }: Props) {
         <DialogHeader>
           <DialogTitle className="text-temple-gold font-display text-xl flex items-center gap-2">
             <Phone size={20} />
-            {t("registerTitle")}
+            {tab === "register" ? t("registerTitle") : "Sign In"}
           </DialogTitle>
         </DialogHeader>
 
         {step === "form" && (
-          <div className="space-y-4 mt-2">
-            <p className="text-gray-300 text-sm">{t("registerSubtitle")}</p>
-            <div className="space-y-3">
-              <div>
-                <label
-                  htmlFor="reg-name"
-                  className="text-sm text-gray-400 mb-1 block"
-                >
-                  {t("registerName")}
-                </label>
-                <Input
-                  id="reg-name"
-                  data-ocid="register.name.input"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder={t("registerNamePlaceholder")}
-                  className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus:border-temple-gold"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="reg-phone"
-                  className="text-sm text-gray-400 mb-1 block"
-                >
-                  {t("registerPhone")}
-                </label>
-                <Input
-                  id="reg-phone"
-                  data-ocid="register.phone.input"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder={t("registerPhonePlaceholder")}
-                  type="tel"
-                  className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus:border-temple-gold"
-                />
-              </div>
+          <>
+            {/* Tabs */}
+            <div className="flex border border-gray-700 rounded-lg overflow-hidden mb-4">
+              <button
+                type="button"
+                data-ocid="register.register.tab"
+                onClick={() => setTab("register")}
+                className={`flex-1 py-2 text-sm font-semibold transition-colors ${
+                  tab === "register"
+                    ? "bg-temple-gold text-black"
+                    : "bg-transparent text-gray-400 hover:text-white"
+                }`}
+              >
+                Register
+              </button>
+              <button
+                type="button"
+                data-ocid="register.signin.tab"
+                onClick={() => setTab("signin")}
+                className={`flex-1 py-2 text-sm font-semibold transition-colors ${
+                  tab === "signin"
+                    ? "bg-temple-gold text-black"
+                    : "bg-transparent text-gray-400 hover:text-white"
+                }`}
+              >
+                Sign In
+              </button>
             </div>
-            <Button
-              data-ocid="register.send_otp.button"
-              onClick={handleRequestOTP}
-              disabled={loading}
-              className="w-full bg-temple-gold text-black hover:bg-temple-gold/90 font-semibold"
-            >
-              {loading ? t("registerSending") : t("registerSendOTP")}
-            </Button>
-          </div>
-        )}
 
-        {step === "otp" && (
-          <div className="space-y-4 mt-2">
-            <div className="bg-green-950/40 border border-green-600/40 rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <MessageCircle size={20} className="text-green-400" />
-                <p className="text-green-300 text-sm font-medium">
-                  Get your OTP via WhatsApp
+            {tab === "register" && (
+              <div className="space-y-3">
+                <p className="text-gray-300 text-sm">{t("registerSubtitle")}</p>
+
+                <div>
+                  <label
+                    htmlFor="reg-name"
+                    className="text-sm text-gray-400 mb-1 block"
+                  >
+                    {t("registerName")}
+                  </label>
+                  <Input
+                    id="reg-name"
+                    data-ocid="register.name.input"
+                    value={regName}
+                    onChange={(e) => setRegName(e.target.value)}
+                    placeholder={t("registerNamePlaceholder")}
+                    className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus:border-temple-gold"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="reg-phone"
+                    className="text-sm text-gray-400 mb-1 block"
+                  >
+                    {t("registerPhone")}
+                  </label>
+                  <Input
+                    id="reg-phone"
+                    data-ocid="register.phone.input"
+                    value={regPhone}
+                    onChange={(e) => setRegPhone(e.target.value)}
+                    placeholder={t("registerPhonePlaceholder")}
+                    type="tel"
+                    className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus:border-temple-gold"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="reg-password"
+                    className="text-sm text-gray-400 mb-1 block"
+                  >
+                    Create Password
+                  </label>
+                  <div className="relative">
+                    <Input
+                      id="reg-password"
+                      data-ocid="register.password.input"
+                      type={showRegPwd ? "text" : "password"}
+                      value={regPassword}
+                      onChange={(e) => setRegPassword(e.target.value)}
+                      placeholder="Min. 6 characters"
+                      className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus:border-temple-gold pr-10"
+                    />
+                    <button
+                      type="button"
+                      data-ocid="register.password.toggle"
+                      onClick={() => setShowRegPwd(!showRegPwd)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    >
+                      {showRegPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="reg-confirm"
+                    className="text-sm text-gray-400 mb-1 block"
+                  >
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <Input
+                      id="reg-confirm"
+                      data-ocid="register.confirm_password.input"
+                      type={showRegConfirm ? "text" : "password"}
+                      value={regConfirm}
+                      onChange={(e) => setRegConfirm(e.target.value)}
+                      placeholder="Re-enter password"
+                      className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus:border-temple-gold pr-10"
+                    />
+                    <button
+                      type="button"
+                      data-ocid="register.confirm_password.toggle"
+                      onClick={() => setShowRegConfirm(!showRegConfirm)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    >
+                      {showRegConfirm ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <Button
+                  data-ocid="register.submit_button"
+                  onClick={handleRegister}
+                  disabled={loading}
+                  className="w-full bg-temple-gold text-black hover:bg-temple-gold/90 font-semibold mt-2"
+                >
+                  {loading ? "Registering..." : "Create Account"}
+                </Button>
+              </div>
+            )}
+
+            {tab === "signin" && (
+              <div className="space-y-3">
+                <p className="text-gray-300 text-sm">
+                  Sign in with your registered mobile number and password.
+                </p>
+
+                <div>
+                  <label
+                    htmlFor="sign-phone"
+                    className="text-sm text-gray-400 mb-1 block"
+                  >
+                    Mobile Number
+                  </label>
+                  <Input
+                    id="sign-phone"
+                    data-ocid="signin.phone.input"
+                    value={signPhone}
+                    onChange={(e) => setSignPhone(e.target.value)}
+                    placeholder={t("registerPhonePlaceholder")}
+                    type="tel"
+                    className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus:border-temple-gold"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="sign-password"
+                    className="text-sm text-gray-400 mb-1 block"
+                  >
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Input
+                      id="sign-password"
+                      data-ocid="signin.password.input"
+                      type={showSignPwd ? "text" : "password"}
+                      value={signPassword}
+                      onChange={(e) => setSignPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus:border-temple-gold pr-10"
+                    />
+                    <button
+                      type="button"
+                      data-ocid="signin.password.toggle"
+                      onClick={() => setShowSignPwd(!showSignPwd)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    >
+                      {showSignPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <Button
+                  data-ocid="signin.submit_button"
+                  onClick={handleSignIn}
+                  disabled={loading}
+                  className="w-full bg-temple-gold text-black hover:bg-temple-gold/90 font-semibold mt-2"
+                >
+                  {loading ? "Signing in..." : "Sign In"}
+                </Button>
+
+                <p className="text-center text-gray-500 text-xs">
+                  Don't have an account?{" "}
+                  <button
+                    type="button"
+                    data-ocid="signin.register.link"
+                    onClick={() => setTab("register")}
+                    className="text-temple-gold hover:underline"
+                  >
+                    Register here
+                  </button>
                 </p>
               </div>
-              <p className="text-gray-400 text-xs">
-                Click the button below to receive your OTP code on WhatsApp at{" "}
-                <span className="text-white font-medium">{phone}</span>.
-              </p>
-              <Button
-                data-ocid="register.whatsapp_otp.button"
-                onClick={handleOpenWhatsApp}
-                className="w-full bg-green-600 hover:bg-green-500 text-white font-semibold flex items-center justify-center gap-2"
-              >
-                <MessageCircle size={16} />
-                {whatsappOpened
-                  ? "Resend via WhatsApp"
-                  : "Send OTP via WhatsApp"}
-              </Button>
-            </div>
-
-            <div>
-              <label
-                htmlFor="reg-otp"
-                className="text-sm text-gray-400 mb-1 block"
-              >
-                {t("registerEnterOTPLabel")}
-              </label>
-              <Input
-                id="reg-otp"
-                data-ocid="register.otp.input"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                placeholder="------"
-                maxLength={6}
-                className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 focus:border-temple-gold text-center text-xl tracking-widest"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button
-                data-ocid="register.back.button"
-                variant="outline"
-                onClick={() => setStep("form")}
-                className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-800 bg-transparent"
-              >
-                {t("registerBack")}
-              </Button>
-              <Button
-                data-ocid="register.verify.button"
-                onClick={handleVerifyOTP}
-                disabled={loading || !whatsappOpened}
-                className="flex-1 bg-temple-gold text-black hover:bg-temple-gold/90 font-semibold disabled:opacity-50"
-              >
-                {loading ? t("registerVerifying") : t("registerVerify")}
-              </Button>
-            </div>
-            {!whatsappOpened && (
-              <p className="text-gray-500 text-xs text-center">
-                Please get your OTP via WhatsApp before verifying.
-              </p>
             )}
-          </div>
+          </>
         )}
 
         {step === "success" && (
@@ -251,10 +406,12 @@ export default function RegisterModal({ open, onClose }: Props) {
               <CheckCircle size={56} className="text-green-400" />
             </div>
             <h3 className="text-white text-lg font-semibold">
-              {t("registerSuccessTitle")}
+              {tab === "register" ? t("registerSuccessTitle") : "Welcome back!"}
             </h3>
             <p className="text-gray-300 text-sm">
-              {t("registerSuccessMessage")}
+              {tab === "register"
+                ? t("registerSuccessMessage")
+                : "You have successfully signed in."}
             </p>
             <Button
               data-ocid="register.close.button"
