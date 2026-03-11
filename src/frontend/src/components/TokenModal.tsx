@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { useLanguage } from "@/context/LanguageContext";
+import { useUser } from "@/context/UserContext";
 import { useActor } from "@/hooks/useActor";
 import {
   Building2,
@@ -37,9 +38,33 @@ function isFutureOrToday(date: Date): boolean {
   return date >= today;
 }
 
+/** Returns today's date string YYYY-MM-DD */
+function todayKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Check if user already booked a token today */
+function hasBookedToday(phone: string): boolean {
+  try {
+    const stored = localStorage.getItem(`temple_token_booked_${phone}`);
+    return stored === todayKey();
+  } catch {
+    return false;
+  }
+}
+
+/** Save today's booking for a user */
+function markBookedToday(phone: string): void {
+  try {
+    localStorage.setItem(`temple_token_booked_${phone}`, todayKey());
+  } catch {}
+}
+
 export default function TokenModal({ open, onClose }: Props) {
   const { t } = useLanguage();
   const { actor, isFetching } = useActor();
+  const { user } = useUser();
   const tokenActor = actor as unknown as ActorWithTokens | null;
 
   const [step, setStep] = useState<"calendar" | "form">("calendar");
@@ -50,6 +75,9 @@ export default function TokenModal({ open, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [tokenNumber, setTokenNumber] = useState<number | null>(null);
+
+  // Check if user already booked today
+  const alreadyBooked = user ? hasBookedToday(user.phone) : false;
 
   const handleDateSelect: DayPickerSingleProps["onSelect"] = (date) => {
     if (!date) return;
@@ -72,6 +100,10 @@ export default function TokenModal({ open, onClose }: Props) {
     try {
       const result = await tokenActor.bookToken(name.trim(), phone.trim());
       setTokenNumber(Number(result));
+      // Mark as booked today for this user
+      if (user) {
+        markBookedToday(user.phone);
+      }
     } catch {
       setError(t("tokenError"));
     } finally {
@@ -157,7 +189,37 @@ export default function TokenModal({ open, onClose }: Props) {
               </div>
 
               <div className="px-6 py-6 overflow-y-auto max-h-[80vh]">
-                {tokenNumber === null ? (
+                {/* Already booked today notice */}
+                {alreadyBooked && tokenNumber === null ? (
+                  <div
+                    data-ocid="token.already_booked.error_state"
+                    className="flex flex-col items-center gap-5 py-4 text-center"
+                  >
+                    <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center">
+                      <Ticket size={28} className="text-red-400" />
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold text-base mb-2">
+                        Token Already Booked Today
+                      </p>
+                      <p className="text-gray-400 text-sm">
+                        You have already booked a token for today. Only 1 token
+                        can be booked per day per number.
+                      </p>
+                      <p className="text-gray-500 text-xs mt-3">
+                        To book another token, please logout and register with a
+                        different number.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={handleClose}
+                      data-ocid="token.close_already_booked.button"
+                      className="bg-temple-gold text-black hover:bg-temple-gold/80 font-semibold px-6"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                ) : tokenNumber === null ? (
                   step === "calendar" ? (
                     /* Step 1: Date selection */
                     <div className="flex flex-col gap-5">

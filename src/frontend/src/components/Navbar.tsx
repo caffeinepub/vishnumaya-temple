@@ -5,7 +5,7 @@ import TokenModal from "@/components/TokenModal";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/context/LanguageContext";
 import { useUser } from "@/context/UserContext";
-import { Bell, BellOff, Images, Menu, Ticket, X } from "lucide-react";
+import { Bell, BellOff, Images, LogOut, Menu, Ticket, X } from "lucide-react";
 import { useState } from "react";
 
 const navItems = [
@@ -26,7 +26,8 @@ const ocids = [
 
 export default function Navbar() {
   const { t, toggleLanguage } = useLanguage();
-  const { user, notificationsEnabled, toggleNotifications } = useUser();
+  const { user, notificationsEnabled, toggleNotifications, clearUser } =
+    useUser();
   const [open, setOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [notifPanelOpen, setNotifPanelOpen] = useState(false);
@@ -43,6 +44,11 @@ export default function Navbar() {
     if (notificationsEnabled) {
       setNotifPanelOpen((v) => !v);
     }
+  };
+
+  const handleLogout = () => {
+    clearUser();
+    setOpen(false);
   };
 
   return (
@@ -86,18 +92,20 @@ export default function Navbar() {
                 {t("navGallery")}
               </button>
 
-              {/* Token button */}
-              <button
-                type="button"
-                data-ocid="nav.token.open_modal_button"
-                onClick={() => setTokenOpen(true)}
-                title={t("navToken")}
-                aria-label={t("navToken")}
-                className="flex items-center gap-1.5 text-temple-gold hover:bg-temple-gold/10 border border-temple-gold/50 rounded-md px-2.5 py-1 transition-colors text-sm font-body"
-              >
-                <Ticket size={15} />
-                {t("navToken")}
-              </button>
+              {/* Token button — only for registered users */}
+              {user && (
+                <button
+                  type="button"
+                  data-ocid="nav.token.open_modal_button"
+                  onClick={() => setTokenOpen(true)}
+                  title={t("navToken")}
+                  aria-label={t("navToken")}
+                  className="flex items-center gap-1.5 text-temple-gold hover:bg-temple-gold/10 border border-temple-gold/50 rounded-md px-2.5 py-1 transition-colors text-sm font-body"
+                >
+                  <Ticket size={15} />
+                  {t("navToken")}
+                </button>
+              )}
 
               {/* Registered user name or Register button */}
               {user ? (
@@ -106,6 +114,17 @@ export default function Navbar() {
                   <span className="text-white font-body text-sm">
                     {displayName}
                   </span>
+                  {/* Logout button */}
+                  <button
+                    type="button"
+                    data-ocid="nav.logout.button"
+                    onClick={handleLogout}
+                    title="Logout"
+                    aria-label="Logout"
+                    className="flex items-center justify-center w-7 h-7 rounded-full text-red-400 hover:bg-red-400/10 transition-colors ml-1"
+                  >
+                    <LogOut size={15} />
+                  </button>
                 </div>
               ) : (
                 <Button
@@ -197,17 +216,19 @@ export default function Navbar() {
                 <Images size={18} />
               </button>
 
-              {/* Token button mobile */}
-              <button
-                type="button"
-                data-ocid="nav.token.open_modal_button"
-                onClick={() => setTokenOpen(true)}
-                title={t("navToken")}
-                aria-label={t("navToken")}
-                className="flex items-center justify-center w-8 h-8 rounded-full text-temple-gold hover:bg-temple-gold/10 transition-colors"
-              >
-                <Ticket size={18} />
-              </button>
+              {/* Token button mobile — only for registered users */}
+              {user && (
+                <button
+                  type="button"
+                  data-ocid="nav.token.open_modal_button"
+                  onClick={() => setTokenOpen(true)}
+                  title={t("navToken")}
+                  aria-label={t("navToken")}
+                  className="flex items-center justify-center w-8 h-8 rounded-full text-temple-gold hover:bg-temple-gold/10 transition-colors"
+                >
+                  <Ticket size={18} />
+                </button>
+              )}
 
               {user ? (
                 <div className="flex items-center gap-1.5">
@@ -215,6 +236,17 @@ export default function Navbar() {
                   <span className="text-white font-body text-xs">
                     {displayName}
                   </span>
+                  {/* Logout button mobile */}
+                  <button
+                    type="button"
+                    data-ocid="nav.logout.button"
+                    onClick={handleLogout}
+                    title="Logout"
+                    aria-label="Logout"
+                    className="flex items-center justify-center w-7 h-7 rounded-full text-red-400 hover:bg-red-400/10 transition-colors"
+                  >
+                    <LogOut size={14} />
+                  </button>
                 </div>
               ) : (
                 <Button
@@ -307,6 +339,17 @@ export default function Navbar() {
                   {t(item.key)}
                 </a>
               ))}
+              {user && (
+                <button
+                  type="button"
+                  data-ocid="nav.logout.menu_button"
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 text-red-400 hover:text-red-300 font-body text-lg py-1 transition-colors text-left"
+                >
+                  <LogOut size={18} />
+                  Logout
+                </button>
+              )}
             </nav>
           </div>
         )}
