@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import type { Pooja } from "../backend.d";
 import { useActor } from "./useActor";
 
@@ -11,34 +11,5 @@ export function useGetAllPoojas() {
       return actor.getAllPoojas();
     },
     enabled: !!actor && !isFetching,
-  });
-}
-
-export function useSubmitBooking() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({
-      devoteeName,
-      phoneNumber,
-      poojaId,
-      preferredDate,
-    }: {
-      devoteeName: string;
-      phoneNumber: string;
-      poojaId: bigint;
-      preferredDate: string;
-    }) => {
-      if (!actor) throw new Error("Actor not available");
-      return actor.submitBooking(
-        devoteeName,
-        phoneNumber,
-        poojaId,
-        preferredDate,
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
-    },
   });
 }

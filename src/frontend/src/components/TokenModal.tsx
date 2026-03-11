@@ -135,8 +135,8 @@ export default function TokenModal({ open, onClose }: Props) {
 
   const whatsappUrl =
     tokenNumber !== null
-      ? `https://wa.me/${phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
-          `Your temple token number is ${tokenNumber}. Please come on ${selectedDate ? formatDate(selectedDate) : "the selected date"} from 6:00 PM onwards. Show this token number at the temple office. Pallikudath Vishnumaya Temple.`,
+      ? `https://wa.me/919074971633?text=${encodeURIComponent(
+          `🛕 *PALLIKUDATH VISHNUMAYA TEMPLE*\n*Token Booking Confirmation*\n──────────────────────\n👤 Name: ${name}\n📞 Phone: ${phone}\n🎟️ Token Number: ${tokenNumber}\n📅 Date: ${selectedDate ? formatDate(selectedDate) : ""}\n⏰ Time: From 6:00 PM onwards\n──────────────────────\nPlease show this token number at the temple office.\nPallikudath Vishnumaya Temple`,
         )}`
       : "";
 
@@ -427,7 +427,7 @@ export default function TokenModal({ open, onClose }: Props) {
                       className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors text-sm"
                     >
                       <MessageCircle size={16} />
-                      {t("tokenShareWhatsApp")}
+                      Send Slip via WhatsApp
                     </a>
 
                     <Button

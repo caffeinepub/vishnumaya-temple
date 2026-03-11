@@ -3,8 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/context/LanguageContext";
-import { useSubmitBooking } from "@/hooks/useQueries";
-import { AlertCircle, Loader2, MessageCircle, Printer } from "lucide-react";
+import { useActor } from "@/hooks/useActor";
+import { AlertCircle, MessageCircle, Printer } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 
@@ -16,13 +16,13 @@ function generateBookingRef() {
 
 export default function BookingSection() {
   const { t } = useLanguage();
-  const { mutate: submitBooking, isPending } = useSubmitBooking();
+  const { actor } = useActor();
 
   const [devoteeName, setDevoteeName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [poojaDescription, setPoojaDescription] = useState("");
   const [preferredDate, setPreferredDate] = useState("");
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "success">("idle");
   const [validationError, setValidationError] = useState("");
   const [bookingRef, setBookingRef] = useState("");
   const [slippedData, setSlippedData] = useState<{
@@ -40,22 +40,18 @@ export default function BookingSection() {
       return;
     }
     const ref = generateBookingRef();
-    submitBooking(
-      { devoteeName, phoneNumber, poojaId: BigInt(0), preferredDate },
-      {
-        onSuccess: () => {
-          setBookingRef(ref);
-          setSlippedData({
-            name: devoteeName,
-            phone: phoneNumber,
-            pooja: poojaDescription,
-            date: preferredDate,
-          });
-          setStatus("success");
-        },
-        onError: () => setStatus("error"),
-      },
-    );
+    setBookingRef(ref);
+    setSlippedData({
+      name: devoteeName,
+      phone: phoneNumber,
+      pooja: poojaDescription,
+      date: preferredDate,
+    });
+    setStatus("success");
+    // Fire and forget -- don't block UI on backend
+    actor
+      ?.submitBooking(devoteeName, phoneNumber, BigInt(0), preferredDate)
+      .catch(() => {});
   };
 
   const handleSendWhatsApp = () => {
@@ -351,25 +347,10 @@ export default function BookingSection() {
                 </div>
               )}
 
-              {status === "error" && (
-                <div
-                  data-ocid="booking.error_state"
-                  className="flex items-center gap-2 text-sm rounded-md p-3"
-                  style={{
-                    background: "oklch(0.95 0.04 25)",
-                    color: "oklch(0.48 0.22 25)",
-                  }}
-                >
-                  <AlertCircle size={16} />
-                  {t("bookingError")}
-                </div>
-              )}
-
               {/* Submit */}
               <Button
                 type="submit"
                 data-ocid="booking.submit_button"
-                disabled={isPending}
                 className="w-full font-display text-lg py-6"
                 style={{
                   background:
@@ -377,25 +358,8 @@ export default function BookingSection() {
                   color: "oklch(0.98 0.005 80)",
                 }}
               >
-                {isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t("submitting")}
-                  </>
-                ) : (
-                  t("submitBooking")
-                )}
+                {t("submitBooking")}
               </Button>
-
-              {isPending && (
-                <div
-                  data-ocid="booking.loading_state"
-                  className="sr-only"
-                  aria-live="polite"
-                >
-                  {t("submitting")}
-                </div>
-              )}
             </motion.form>
           )}
         </AnimatePresence>
