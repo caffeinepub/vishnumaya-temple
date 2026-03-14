@@ -14,16 +14,14 @@ import {
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { DayPickerSingleProps } from "react-day-picker";
+
+const DEPLOYMENT_EPOCH = "v42";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-}
-
-interface ActorWithTokens {
-  bookToken(name: string, phoneNumber: string): Promise<bigint>;
 }
 
 /** Returns true if the given date is a Saturday */
@@ -38,46 +36,82 @@ function isFutureOrToday(date: Date): boolean {
   return date >= today;
 }
 
-/** Returns today's date string YYYY-MM-DD */
-function todayKey(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+/** Returns a date string YYYY-MM-DD for the given date */
+function dateKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-/** Check if user already booked a token today */
-function hasBookedToday(phone: string): boolean {
+/** Check if user already booked a token for a specific date */
+function hasBookedForDate(phone: string, date: Date): boolean {
   try {
-    const stored = localStorage.getItem(`temple_token_booked_${phone}`);
-    return stored === todayKey();
+    return (
+      localStorage.getItem(`temple_token_booked_${phone}_${dateKey(date)}`) ===
+      "true"
+    );
   } catch {
     return false;
   }
 }
 
-/** Save today's booking for a user */
-function markBookedToday(phone: string): void {
+/** Save booking for a user on a specific date */
+function markBookedForDate(phone: string, date: Date): void {
   try {
-    localStorage.setItem(`temple_token_booked_${phone}`, todayKey());
+    localStorage.setItem(
+      `temple_token_booked_${phone}_${dateKey(date)}`,
+      "true",
+    );
+  } catch {}
+}
+
+/** Clear stale booking records if epoch has changed */
+function clearStaleBookings(): void {
+  try {
+    if (localStorage.getItem("temple_token_epoch") !== DEPLOYMENT_EPOCH) {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith("temple_token_booked_")) {
+          keysToRemove.push(key);
+        }
+      }
+      for (const k of keysToRemove) {
+        localStorage.removeItem(k);
+      }
+      localStorage.setItem("temple_token_epoch", DEPLOYMENT_EPOCH);
+    }
   } catch {}
 }
 
 export default function TokenModal({ open, onClose }: Props) {
   const { t } = useLanguage();
-  const { actor, isFetching } = useActor();
+  const { actor } = useActor();
   const { user } = useUser();
-  const tokenActor = actor as unknown as ActorWithTokens | null;
 
   const [step, setStep] = useState<"calendar" | "form">("calendar");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [name, setName] = useState(user?.name ?? "");
+  const [phone, setPhone] = useState(user?.phone ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [tokenNumber, setTokenNumber] = useState<number | null>(null);
 
-  // Check if user already booked today
-  const alreadyBooked = user ? hasBookedToday(user.phone) : false;
+  // Clear stale localStorage bookings on mount
+  useEffect(() => {
+    clearStaleBookings();
+  }, []);
+
+  // Sync name/phone when user changes
+  useEffect(() => {
+    if (user) {
+      setName(user.name ?? "");
+      setPhone(user.phone ?? "");
+    }
+  }, [user]);
+
+  // Check if user already booked for the selected date
+  const alreadyBooked =
+    user && selectedDate ? hasBookedForDate(user.phone, selectedDate) : false;
 
   const handleDateSelect: DayPickerSingleProps["onSelect"] = (date) => {
     if (!date) return;
@@ -94,26 +128,28 @@ export default function TokenModal({ open, onClose }: Props) {
       setError(t("tokenFillAll"));
       return;
     }
-    if (!tokenActor || isFetching) return;
+    if (!actor) {
+      setError("Unable to connect. Please try again.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      const result = await tokenActor.bookToken(name.trim(), phone.trim());
+      const result = await actor.bookToken(name.trim(), phone.trim());
       setTokenNumber(Number(result));
-      // Mark as booked today for this user
-      if (user) {
-        markBookedToday(user.phone);
+      if (user && selectedDate) {
+        markBookedForDate(user.phone, selectedDate);
       }
-    } catch {
-      setError(t("tokenError"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("tokenError"));
     } finally {
       setLoading(false);
     }
   };
 
   const handleReset = () => {
-    setName("");
-    setPhone("");
+    setName(user?.name ?? "");
+    setPhone(user?.phone ?? "");
     setError("");
     setTokenNumber(null);
     setSelectedDate(undefined);
@@ -189,7 +225,7 @@ export default function TokenModal({ open, onClose }: Props) {
               </div>
 
               <div className="px-6 py-6 overflow-y-auto max-h-[80vh]">
-                {/* Already booked today notice */}
+                {/* Already booked for selected date notice */}
                 {alreadyBooked && tokenNumber === null ? (
                   <div
                     data-ocid="token.already_booked.error_state"
@@ -200,11 +236,11 @@ export default function TokenModal({ open, onClose }: Props) {
                     </div>
                     <div>
                       <p className="text-white font-semibold text-base mb-2">
-                        Token Already Booked Today
+                        Token Already Booked
                       </p>
                       <p className="text-gray-400 text-sm">
-                        You have already booked a token for today. Only 1 token
-                        can be booked per day per number.
+                        You have already booked a token for this date. Only 1
+                        token can be booked per day per number.
                       </p>
                       <p className="text-gray-500 text-xs mt-3">
                         To book another token, please logout and register with a
@@ -356,14 +392,14 @@ export default function TokenModal({ open, onClose }: Props) {
 
                       <Button
                         onClick={handleSubmit}
-                        disabled={loading || isFetching || !tokenActor}
+                        disabled={loading || !actor}
                         data-ocid="token.submit_button"
                         className="bg-temple-gold text-black hover:bg-temple-gold/80 font-semibold w-full flex items-center gap-2"
                       >
-                        {loading || isFetching ? (
+                        {loading ? (
                           <>
                             <Loader2 size={16} className="animate-spin" />
-                            {loading ? t("tokenSubmitting") : "Connecting..."}
+                            {t("tokenSubmitting")}
                           </>
                         ) : (
                           <>

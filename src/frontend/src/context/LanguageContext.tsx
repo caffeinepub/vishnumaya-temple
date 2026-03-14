@@ -317,6 +317,7 @@ const translations: Record<string, Record<Language, string>> = {
   galleryTitle: { en: "Temple Gallery", ml: "ക്ഷേത്ര ഗ്യാലറി" },
   galleryUpload: { en: "Upload Photo/Video", ml: "ഫോട്ടോ/വീഡിയോ അപ്‌ലോഡ് ചെയ്യുക" },
   galleryCaption: { en: "Caption (optional)", ml: "അടിക്കുറിപ്പ് (ഐച്ഛിക)" },
+  galleryViewMore: { en: "View More", ml: "കൂടുതൽ കാണൂ" },
   galleryEmpty: {
     en: "No photos or videos yet",
     ml: "ഇതുവരെ ഫോട്ടോകളോ വീഡിയോകളോ ഇല്ല",
